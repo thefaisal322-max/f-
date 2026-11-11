@@ -35,15 +35,14 @@ class MainActivity : BaseActivity() {
 
         tiles = listOf(
             Tile(R.string.t_chat, R.drawable.ic_chat, "main") { go(ChatActivity::class.java) },
-            Tile(R.string.t_live, R.drawable.ic_live, "main vision") { go(LiveActivity::class.java) },
-            Tile(R.string.t_lens, R.drawable.ic_lens, "main vision") { go(VisionActivity::class.java) { putExtra("mode", "lens") } },
-            Tile(R.string.t_ocr, R.drawable.ic_ocr, "main vision") { go(VisionActivity::class.java) { putExtra("mode", "ocr") } },
-            Tile(R.string.t_bvr, R.drawable.ic_bvr, "main vision") { go(BvrActivity::class.java) },
+            Tile(R.string.t_lens, R.drawable.ic_lens, "main") { go(VisionActivity::class.java) { putExtra("mode", "lens") } },
+            Tile(R.string.t_ocr, R.drawable.ic_ocr, "main") { go(VisionActivity::class.java) { putExtra("mode", "ocr") } },
+            Tile(R.string.t_bvr, R.drawable.ic_bvr, "main") { go(BvrActivity::class.java) },
             Tile(R.string.t_browser, R.drawable.ic_browser, "main web") { go(BrowserActivity::class.java) },
             Tile(R.string.t_nav, R.drawable.ic_nav, "main web") { go(MapActivity::class.java) },
             Tile(R.string.t_tr, R.drawable.ic_translate, "main web") { go(TranslateActivity::class.java) },
             Tile(R.string.t_share, R.drawable.ic_share, "main web") { go(ShareActivity::class.java) },
-            Tile(R.string.t_scan, R.drawable.ic_scan, "main vision") { go(ScannerActivity::class.java) },
+            Tile(R.string.t_scan, R.drawable.ic_scan, "main") { go(ScannerActivity::class.java) },
             Tile(R.string.t_maker, R.drawable.ic_qr, "main") { go(MakerActivity::class.java) },
             Tile(R.string.t_convert, R.drawable.ic_money, "main") { go(ConverterActivity::class.java) },
             Tile(R.string.t_weather, R.drawable.ic_weather, "main web") { go(WeatherActivity::class.java) },
@@ -66,6 +65,12 @@ class MainActivity : BaseActivity() {
         tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(t: TabLayout.Tab) {
                 tab = t.tag as String
+                if (tab == "vision") {
+                    // The Vision tab is the live, talking camera assistant; come back to Main afterwards.
+                    go(LiveActivity::class.java)
+                    tabs.post { tabs.getTabAt(0)?.select() }
+                    return
+                }
                 shown = tiles.filter { it.cats.split(" ").contains(tab) }
                 adapter.notifyDataSetChanged()
             }

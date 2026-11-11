@@ -9,5 +9,5 @@
     <color name="accent">#0B5FD0</color>
     <color name="on_accent">#FFFFFF</color>
     <color name="danger">#C22A2A</color>
-    <color name="launcher_bg">#000000</color>
+    <color name="launcher_bg">#FFFFFF</color>
 </resources>

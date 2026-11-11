@@ -47,6 +47,11 @@ class ChatActivity : BaseActivity() {
     private lateinit var send: ImageButton
     private lateinit var attached: TextView
     private lateinit var chats: ListView
+    private lateinit var welcome: TextView
+
+    private fun updateWelcome() {
+        welcome.visibility = if (turns.isEmpty()) View.VISIBLE else View.GONE
+    }
 
     private val picker = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) attach(uri)
@@ -63,10 +68,12 @@ class ChatActivity : BaseActivity() {
         attached = findViewById(R.id.attached)
         chats = findViewById(R.id.chats)
 
-        val tb = bar(R.string.t_chat)
-        tb.setNavigationIcon(R.drawable.ic_menu)
-        tb.setNavigationContentDescription(R.string.menu)
-        tb.setNavigationOnClickListener { drawer.openDrawer(GravityCompat.START) }
+        welcome = findViewById(R.id.welcome)
+        findViewById<ImageButton>(R.id.menuBtn).setOnClickListener { drawer.openDrawer(GravityCompat.START) }
+        // The glasses button opens the live, talking camera assistant.
+        findViewById<ImageButton>(R.id.liveBtn).setOnClickListener {
+            startActivity(android.content.Intent(this, LiveActivity::class.java))
+        }
 
         findViewById<Button>(R.id.newChat).setOnClickListener {
             if (!busy) newChat()
@@ -98,7 +105,7 @@ class ChatActivity : BaseActivity() {
                 when (state) {
                     Voice.State.RECORDING -> R.string.listening
                     Voice.State.WORKING -> R.string.thinking
-                    else -> R.string.chat_hint
+                    else -> R.string.chat_hint2
                 }
             )
         }
@@ -142,6 +149,7 @@ class ChatActivity : BaseActivity() {
         log.removeAllViews()
         clearAttachment()
         refreshSide()
+        updateWelcome()
     }
 
     private fun openChat(id: String) {
@@ -162,6 +170,7 @@ class ChatActivity : BaseActivity() {
         turns.forEach { bubble(it.role, it.show) }
         Prefs.sp(this).edit().putString("chat_current", id).apply()
         refreshSide()
+        updateWelcome()
     }
 
     private fun save() {
@@ -293,6 +302,7 @@ class ChatActivity : BaseActivity() {
 
         if (image != null) photoBubble(image)
         turns.add(AI.Turn("user", sent, shown))
+        updateWelcome()
         bubble("user", shown)
         clearAttachment()
         val reply = bubble("model", getString(R.string.thinking))
@@ -316,6 +326,7 @@ class ChatActivity : BaseActivity() {
                 if (Prefs.speak(this) && !isDestroyed) voice.speak(answer)
             } else {
                 turns.removeAt(turns.lastIndex) // drop the unanswered question from the history
+                updateWelcome()
                 reply.text = error
             }
             scrollDown()

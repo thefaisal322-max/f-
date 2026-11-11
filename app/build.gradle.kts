@@ -3,6 +3,14 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// API keys live in variables, never in the source code: environment variables
+// (GitHub Actions secrets) or an untracked keys.properties file in the project root.
+val keyProps = java.util.Properties().apply {
+    val f = rootProject.file("keys.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+fun keyVar(name: String): String = (System.getenv(name) ?: keyProps.getProperty(name) ?: "").trim().replace("\"", "")
+
 android {
     namespace = "com.fainet.faisalai"
     compileSdk = 34
@@ -11,8 +19,11 @@ android {
         applicationId = "com.fainet.faisalai"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "2.2-F+"
+        versionCode = 5
+        versionName = "3.0-F+"
+        buildConfigField("String", "GEMINI_API_KEY", "\"${keyVar("GEMINI_API_KEY")}\"")
+        buildConfigField("String", "CF_ACCOUNT_ID", "\"${keyVar("CF_ACCOUNT_ID")}\"")
+        buildConfigField("String", "CF_API_TOKEN", "\"${keyVar("CF_API_TOKEN")}\"")
         resourceConfigurations += listOf("en", "ps", "fa")
     }
     // One fixed key for every build, so a new APK installs over the old one.
@@ -39,6 +50,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
+    buildFeatures { buildConfig = true }
     packaging {
         resources.excludes += listOf("META-INF/*.version", "META-INF/LICENSE*", "META-INF/NOTICE*", "kotlin/**", "DebugProbesKt.bin", "**.kotlin_builtins", "**.kotlin_module")
     }

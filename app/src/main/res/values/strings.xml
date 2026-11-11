@@ -61,7 +61,6 @@
     <string name="share">Share</string>
     <string name="delete">Delete</string>
     <string name="no_app">No app can open this file.</string>
-    <string name="no_key">Add an AI key in Settings first.</string>
     <string name="err_net">Could not reach the AI. Check the internet connection.</string>
     <string name="s_look">Appearance</string>
     <string name="s_theme">Theme</string>
@@ -197,4 +196,50 @@
     <string name="conv_by" translatable="false">Rates By Exchange Rate API: https://www.exchangerate-api.com</string>
     <string name="w_by" translatable="false">Weather data by Open-Meteo.com: https://open-meteo.com</string>
     <string name="k_rates_url" translatable="false">Exchange rates URL</string>
+    <string name="no_results">No results found.</string>
+    <string name="no_key">No AI key found. Set GEMINI_API_KEY or CF keys when building, or add one in Settings.</string>
+    <string name="chat_welcome">Welcome
+this f+</string>
+    <string name="chat_hint2">Ask anything</string>
+    <string name="sh_title">Share Files</string>
+    <string name="sh_sub">Fast, no internet needed. Both phones on the same Wi‑Fi or hotspot.</string>
+    <string name="sh_send">Send</string>
+    <string name="sh_receive">Receive</string>
+    <string name="sh_send_sub">Scan the receiver\'s QR code</string>
+    <string name="sh_recv_sub">Show a QR code to the sender</string>
+    <string name="sh_waiting">Waiting for the other phone to scan…</string>
+    <string name="sh_scan_hint">Point the camera at the QR code on the receiving phone</string>
+    <string name="sh_connected">Connected to %1$s</string>
+    <string name="sh_cancel">Cancel</string>
+    <string name="sh_disconnect">Disconnect</string>
+    <string name="sh_photos">Photos</string>
+    <string name="sh_videos">Videos</string>
+    <string name="sh_music">Music</string>
+    <string name="sh_apps">Apps</string>
+    <string name="sh_files">Files</string>
+    <string name="sh_received">Received</string>
+    <string name="sh_none">No file selected</string>
+    <string name="sh_sel">%1$d selected · %2$s</string>
+    <string name="sh_go">SEND</string>
+    <string name="sh_browse">Browse files…</string>
+    <string name="sh_perm">Allow access to your photos, videos and music to see them here.</string>
+    <string name="sh_allow">Allow access</string>
+    <string name="sh_empty">Nothing here yet.</string>
+    <string name="sh_done">Sent %1$d, failed %2$d</string>
+    <string name="sh_got">Received: %1$s</string>
+    <string name="sh_bad_qr">This is not a Faisal Share code.</string>
+    <string name="sh_fail">Could not connect. Are both phones on the same Wi‑Fi?</string>
+    <string name="sh_mbs">%1$s MB/s</string>
+    <string name="sh_sending">Sending… %1$d%%</string>
+    <string name="sh_idle">Ready</string>
+    <string name="map_save">Save</string>
+    <string name="map_saved">Saved</string>
+    <string name="map_route">Route</string>
+    <string name="map_saved_ok">Place saved</string>
+    <string name="map_none_saved">No saved places yet. Find a place, then tap Save.</string>
+    <string name="map_delete">Delete</string>
+    <string name="map_no_pin">Find a place first, or press and hold on the map.</string>
+    <string name="map_need_me">Turn on your location first (tap My location).</string>
+    <string name="map_no_route">No route found.</string>
+    <string name="map_pick">Saved places</string>
 </resources>

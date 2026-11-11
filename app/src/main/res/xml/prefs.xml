@@ -9,8 +9,6 @@
         <EditTextPreference app:key="cf_account" app:title="@string/k_cf_account" app:iconSpaceReserved="false" />
         <EditTextPreference app:key="cf_token" app:title="@string/k_cf_token" app:iconSpaceReserved="false" />
         <EditTextPreference app:key="cf_model" app:title="@string/k_cf_model" app:defaultValue="@cf/mistralai/mistral-small-3.1-24b-instruct" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
-        <EditTextPreference app:key="mistral_key" app:title="@string/k_mistral" app:iconSpaceReserved="false" />
-        <EditTextPreference app:key="mistral_model" app:title="@string/k_mistral_model" app:defaultValue="mistral-small-latest" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
         <EditTextPreference app:key="gemini_key" app:title="@string/k_gemini" app:iconSpaceReserved="false" />
         <EditTextPreference app:key="model" app:title="@string/k_gemini_model" app:defaultValue="gemini-flash-latest" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
         <ListPreference app:key="len" app:title="@string/s_len" app:entries="@array/len_entries" app:entryValues="@array/len_values" app:defaultValue="medium" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
@@ -19,9 +17,6 @@
     <PreferenceCategory app:title="@string/s_voice" app:iconSpaceReserved="false">
         <SwitchPreferenceCompat app:key="speak" app:title="@string/s_speak" app:summary="@string/s_speak_sum" app:defaultValue="false" app:iconSpaceReserved="false" />
         <EditTextPreference app:key="tts_model" app:title="@string/k_tts_model" app:defaultValue="gemini-3.8-flash-tts" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
-    </PreferenceCategory>
-    <PreferenceCategory app:title="@string/s_search" app:iconSpaceReserved="false">
-        <EditTextPreference app:key="tavily_key" app:title="@string/k_tavily" app:iconSpaceReserved="false" />
     </PreferenceCategory>
     <PreferenceCategory app:title="@string/s_tools" app:iconSpaceReserved="false">
         <EditTextPreference app:key="rates_url" app:title="@string/k_rates_url" app:defaultValue="https://open.er-api.com/v6/latest/USD" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />

@@ -3,30 +3,25 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical" android:background="?attr/colBg">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:gravity="center_vertical" android:padding="6dp">
+        android:orientation="horizontal" android:gravity="center_vertical" android:padding="8dp">
         <ImageButton android:id="@+id/navBack" android:layout_width="44dp" android:layout_height="44dp"
             android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_back" android:contentDescription="@android:string/cancel" />
-        <ImageButton android:id="@+id/navForward" android:layout_width="44dp" android:layout_height="44dp"
-            android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_forward" android:contentDescription="@string/t_browser" />
-        <EditText android:id="@+id/url" android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1"
-            android:background="@drawable/bg_field" android:paddingStart="12dp" android:paddingEnd="12dp"
-            android:hint="@string/url_hint" android:textColor="?attr/colFg" android:textSize="15sp"
-            android:inputType="textUri" android:imeOptions="actionGo" android:maxLines="1" android:selectAllOnFocus="true" android:importantForAutofill="no" />
-        <ImageButton android:id="@+id/reload" android:layout_width="44dp" android:layout_height="44dp"
-            android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_reload" android:contentDescription="@string/t_browser" />
+        <EditText android:id="@+id/url" android:layout_width="0dp" android:layout_height="46dp" android:layout_weight="1"
+            android:background="@drawable/bg_field" android:drawableStart="@drawable/ic_search" android:drawablePadding="10dp"
+            android:paddingStart="14dp" android:paddingEnd="14dp"
+            android:hint="@string/url_hint" android:textColor="?attr/colFg" android:textSize="16sp"
+            android:inputType="text" android:imeOptions="actionSearch" android:maxLines="1" android:importantForAutofill="no" />
     </LinearLayout>
     <com.google.android.material.tabs.TabLayout android:id="@+id/modes"
         android:layout_width="match_parent" android:layout_height="44dp" android:background="?attr/colBg"
-        app:tabMode="scrollable" app:tabIndicatorColor="?attr/colAccent" app:tabSelectedTextColor="?attr/colFg" app:tabTextColor="?attr/colMuted" />
+        app:tabMode="fixed" app:tabIndicatorColor="?attr/colAccent" app:tabSelectedTextColor="?attr/colFg" app:tabTextColor="?attr/colMuted" />
     <ProgressBar android:id="@+id/progress" style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent" android:layout_height="3dp" android:max="100" />
+        android:layout_width="match_parent" android:layout_height="3dp" android:indeterminate="true" android:visibility="invisible" />
     <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <WebView android:id="@+id/web" android:layout_width="match_parent" android:layout_height="match_parent" />
-        <ScrollView android:id="@+id/aiPanel" android:layout_width="match_parent" android:layout_height="match_parent"
-            android:background="?attr/colBg" android:visibility="gone">
-            <TextView android:id="@+id/aiText" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp"
-                android:textColor="?attr/colFg" android:textColorLink="?attr/colAccent" android:textSize="16sp"
-                android:autoLink="web" android:textIsSelectable="true" />
-        </ScrollView>
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/list" android:layout_width="match_parent" android:layout_height="match_parent"
+            android:padding="8dp" android:clipToPadding="false" />
+        <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="center"
+            android:gravity="center" android:padding="24dp" android:textColor="?attr/colMuted" android:textSize="16sp" />
+        <WebView android:id="@+id/web" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" />
     </FrameLayout>
 </LinearLayout>

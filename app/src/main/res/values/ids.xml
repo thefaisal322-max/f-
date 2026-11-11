@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="rowTitle" type="id" />
+    <item name="rowBody" type="id" />
+    <item name="rowIcon" type="id" />
+    <item name="rowMark" type="id" />
+</resources>

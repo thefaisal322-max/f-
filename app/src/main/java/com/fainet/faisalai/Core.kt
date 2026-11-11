@@ -92,14 +92,12 @@ object Prefs {
     }
 
     fun provider(c: Context): String = str(c, "provider", "auto")
-    fun cfAccount(c: Context): String = str(c, "cf_account")
-    fun cfToken(c: Context): String = str(c, "cf_token")
+    // Keys come from build variables; the Settings fields remain as an override.
+    fun cfAccount(c: Context): String = str(c, "cf_account").ifEmpty { BuildConfig.CF_ACCOUNT_ID }
+    fun cfToken(c: Context): String = str(c, "cf_token").ifEmpty { BuildConfig.CF_API_TOKEN }
     fun cfModel(c: Context): String = str(c, "cf_model").ifEmpty { "@cf/mistralai/mistral-small-3.1-24b-instruct" }
-    fun mistralKey(c: Context): String = str(c, "mistral_key")
-    fun mistralModel(c: Context): String = str(c, "mistral_model").ifEmpty { "mistral-small-latest" }
-    fun geminiKey(c: Context): String = str(c, "gemini_key").ifEmpty { str(c, "api_key") }
+    fun geminiKey(c: Context): String = str(c, "gemini_key").ifEmpty { str(c, "api_key") }.ifEmpty { BuildConfig.GEMINI_API_KEY }
     fun geminiModel(c: Context): String = str(c, "model").ifEmpty { "gemini-flash-latest" }
-    fun tavilyKey(c: Context): String = str(c, "tavily_key")
     fun ratesUrl(c: Context): String = str(c, "rates_url").ifEmpty { "https://open.er-api.com/v6/latest/USD" }
     fun ttsModel(c: Context): String = str(c, "tts_model").ifEmpty { "gemini-3.8-flash-tts" }
     fun speak(c: Context): Boolean = sp(c).getBoolean("speak", false)
@@ -182,10 +180,6 @@ object AI {
                         "https://api.cloudflare.com/client/v4/accounts/${Prefs.cfAccount(ctx)}/ai/v1/chat/completions",
                         Prefs.cfToken(ctx), Prefs.cfModel(ctx), system, turns, image, imageAsObject = true
                     )
-                    "mistral" -> openAi(
-                        "https://api.mistral.ai/v1/chat/completions",
-                        Prefs.mistralKey(ctx), Prefs.mistralModel(ctx), system, turns, image, imageAsObject = false
-                    )
                     else -> gemini(Prefs.geminiKey(ctx), Prefs.geminiModel(ctx), system, turns, image)
                 }
             } catch (e: IOException) {
@@ -204,17 +198,14 @@ object AI {
      */
     private fun pick(ctx: Context, hasImage: Boolean): String? {
         val cf = Prefs.cfAccount(ctx).isNotEmpty() && Prefs.cfToken(ctx).isNotEmpty()
-        val mistral = Prefs.mistralKey(ctx).isNotEmpty()
         val gemini = Prefs.geminiKey(ctx).isNotEmpty()
         if (hasImage && gemini) return "gemini"
         when (Prefs.provider(ctx)) {
             "cloudflare" -> if (cf) return "cloudflare"
-            "mistral" -> if (mistral) return "mistral"
             "gemini" -> if (gemini) return "gemini"
         }
         return when {
             cf -> "cloudflare"
-            mistral -> "mistral"
             gemini -> "gemini"
             else -> null
         }
@@ -397,45 +388,6 @@ object AI {
         }
         if (sb.isBlank()) throw RuntimeException("The AI returned no text.")
         return sb.toString().trim()
-    }
-}
-
-/** Live web results from Tavily, used by "AI Says". */
-object Tavily {
-    class Hit(val title: String, val url: String, val content: String)
-
-    /** Calls done(hits, error) on the main thread; exactly one of the two is non-null. */
-    fun search(ctx: Context, query: String, done: (List<Hit>?, String?) -> Unit) {
-        val key = Prefs.tavilyKey(ctx)
-        Net.pool.execute {
-            var hits: List<Hit>? = null
-            var error: String? = null
-            try {
-                val body = JSONObject().put("query", query).put("max_results", 6).put("search_depth", "basic")
-                val (code, text) = Net.request(
-                    "POST", "https://api.tavily.com/search", mapOf("Authorization" to "Bearer $key"), body.toString()
-                )
-                val json = try { JSONObject(text) } catch (e: Exception) { JSONObject() }
-                if (code !in 200..299) {
-                    val detail = json.optJSONObject("detail")?.optString("error") ?: json.optString("detail")
-                    throw RuntimeException("Tavily: " + detail.ifEmpty { "HTTP $code" })
-                }
-                val list = ArrayList<Hit>()
-                val arr = json.optJSONArray("results")
-                if (arr != null) {
-                    for (i in 0 until arr.length()) {
-                        val o = arr.optJSONObject(i) ?: continue
-                        list.add(Hit(o.optString("title"), o.optString("url"), o.optString("content")))
-                    }
-                }
-                hits = list
-            } catch (e: IOException) {
-                error = ctx.getString(R.string.err_net)
-            } catch (e: Exception) {
-                error = e.message ?: ctx.getString(R.string.err_net)
-            }
-            Net.main.post { done(hits, error) }
-        }
     }
 }
 

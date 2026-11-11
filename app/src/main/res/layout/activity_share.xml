@@ -3,29 +3,90 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical" android:background="?attr/colBg">
     <include layout="@layout/bar" />
-    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical" android:padding="16dp">
 
-            <Button android:id="@+id/pick" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/share_pick" />
-            <TextView android:id="@+id/chosen" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp"
-                android:text="@string/share_none" android:textColor="?attr/colMuted" android:textSize="14sp" />
-            <Button android:id="@+id/start" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/share_start" />
-            <TextView android:id="@+id/info" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp"
-                android:text="@string/share_info" android:textColor="?attr/colMuted" android:textSize="14sp" android:visibility="gone" />
-            <TextView android:id="@+id/address" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp"
-                android:padding="14dp" android:gravity="center" android:background="@drawable/bg_bot" android:textDirection="ltr"
-                android:textColor="?attr/colFg" android:textSize="20sp" android:textStyle="bold" android:textIsSelectable="true" android:visibility="gone" />
-            <TextView android:id="@+id/qrHint" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp"
-                android:text="@string/scan_qr" android:textColor="?attr/colMuted" android:textSize="14sp" android:visibility="gone" />
-            <ImageView android:id="@+id/qr" android:layout_width="220dp" android:layout_height="220dp" android:layout_marginTop="8dp"
-                android:layout_gravity="center_horizontal" android:visibility="gone" android:importantForAccessibility="no" />
-            <TextView android:id="@+id/speed" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp"
-                android:gravity="center" android:textColor="?attr/colAccent" android:textSize="18sp" android:textStyle="bold" android:visibility="gone" />
-            <TextView android:id="@+id/received" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp"
-                android:textColor="?attr/colFg" android:textSize="14sp" />
-            <Button android:id="@+id/other" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/share_other" />
-
+    <!-- Home: Send or Receive -->
+    <LinearLayout android:id="@+id/pHome" android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:padding="20dp" android:gravity="center_vertical">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/sh_sub"
+            android:gravity="center" android:textColor="?attr/colMuted" android:textSize="15sp" android:layout_marginBottom="24dp" />
+        <LinearLayout android:id="@+id/btnSend" android:layout_width="match_parent" android:layout_height="130dp"
+            android:orientation="horizontal" android:gravity="center_vertical" android:padding="22dp"
+            android:background="@drawable/bg_card" android:clickable="true" android:focusable="true">
+            <ImageView android:layout_width="56dp" android:layout_height="56dp" android:src="@drawable/ic_send_up" android:importantForAccessibility="no" />
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sh_send" android:textColor="?attr/colFg" android:textSize="24sp" android:textStyle="bold" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sh_send_sub" android:textColor="?attr/colMuted" android:textSize="14sp" />
+            </LinearLayout>
         </LinearLayout>
-    </ScrollView>
+        <LinearLayout android:id="@+id/btnReceive" android:layout_width="match_parent" android:layout_height="130dp" android:layout_marginTop="16dp"
+            android:orientation="horizontal" android:gravity="center_vertical" android:padding="22dp"
+            android:background="@drawable/bg_card" android:clickable="true" android:focusable="true">
+            <ImageView android:layout_width="56dp" android:layout_height="56dp" android:src="@drawable/ic_recv_down" android:importantForAccessibility="no" />
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sh_receive" android:textColor="?attr/colFg" android:textSize="24sp" android:textStyle="bold" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/sh_recv_sub" android:textColor="?attr/colMuted" android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Receive: QR code -->
+    <LinearLayout android:id="@+id/pReceive" android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:gravity="center" android:padding="20dp" android:visibility="gone">
+        <ImageView android:id="@+id/qr" android:layout_width="260dp" android:layout_height="260dp" android:padding="14dp"
+            android:background="@drawable/bg_qr" android:importantForAccessibility="no" />
+        <TextView android:id="@+id/myAddress" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="16dp"
+            android:textColor="?attr/colMuted" android:textSize="14sp" android:textDirection="ltr" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp"
+            android:text="@string/sh_waiting" android:textColor="?attr/colFg" android:textSize="16sp" />
+        <Button android:id="@+id/cancelReceive" style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="@string/sh_cancel" />
+    </LinearLayout>
+
+    <!-- Send: scanner -->
+    <FrameLayout android:id="@+id/pScan" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+        <androidx.camera.view.PreviewView android:id="@+id/preview" android:layout_width="match_parent" android:layout_height="match_parent" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="bottom"
+            android:background="#99000000" android:padding="16dp" android:gravity="center" android:text="@string/sh_scan_hint"
+            android:textColor="#FFFFFF" android:textSize="15sp" />
+    </FrameLayout>
+
+    <!-- Connected: pick and send -->
+    <LinearLayout android:id="@+id/pConnected" android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:visibility="gone">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
+            android:gravity="center_vertical" android:layout_margin="12dp" android:padding="14dp" android:background="@drawable/bg_card">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                <TextView android:id="@+id/peerName" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="?attr/colFg" android:textSize="16sp" android:textStyle="bold" />
+                <TextView android:id="@+id/state" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="?attr/colMuted" android:textSize="13sp" />
+            </LinearLayout>
+            <TextView android:id="@+id/speed" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="?attr/colAccent" android:textSize="22sp" android:textStyle="bold" />
+        </LinearLayout>
+        <ProgressBar android:id="@+id/progress" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent"
+            android:layout_height="4dp" android:layout_marginStart="12dp" android:layout_marginEnd="12dp" android:max="1000" android:visibility="invisible" />
+        <com.google.android.material.tabs.TabLayout android:id="@+id/shareTabs" android:layout_width="match_parent" android:layout_height="46dp"
+            app:tabMode="scrollable" app:tabIndicatorColor="?attr/colAccent" app:tabSelectedTextColor="?attr/colFg" app:tabTextColor="?attr/colMuted" />
+        <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/items" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="4dp" />
+            <LinearLayout android:id="@+id/emptyBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="center"
+                android:orientation="vertical" android:gravity="center" android:padding="24dp">
+                <TextView android:id="@+id/empty" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center"
+                    android:textColor="?attr/colMuted" android:textSize="15sp" />
+                <Button android:id="@+id/emptyBtn" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:layout_marginTop="12dp" android:visibility="gone" />
+            </LinearLayout>
+        </FrameLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"
+            android:gravity="center_vertical" android:padding="12dp">
+            <TextView android:id="@+id/selText" android:layout_width="0dp" android:layout_height="52dp" android:layout_weight="1"
+                android:gravity="center_vertical" android:paddingStart="20dp" android:paddingEnd="20dp"
+                android:background="@drawable/bg_outline_btn" android:textColor="?attr/colFg" android:textSize="16sp" />
+            <TextView android:id="@+id/goBtn" android:layout_width="wrap_content" android:layout_height="52dp" android:layout_marginStart="12dp"
+                android:minWidth="130dp" android:gravity="center" android:paddingStart="22dp" android:paddingEnd="22dp"
+                android:background="@drawable/bg_outline_btn" android:text="@string/sh_go" android:textColor="?attr/colAccent"
+                android:textSize="16sp" android:textStyle="bold" android:clickable="true" android:focusable="true" />
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>

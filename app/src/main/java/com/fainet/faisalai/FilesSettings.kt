@@ -214,7 +214,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         // Keys are typed as passwords and never shown in the list.
-        for (key in listOf("cf_token", "mistral_key", "gemini_key", "tavily_key")) {
+        for (key in listOf("cf_token", "gemini_key")) {
             findPreference<EditTextPreference>(key)?.apply {
                 setOnBindEditTextListener {
                     it.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
