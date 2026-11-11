@@ -73,6 +73,20 @@ class BvrActivity : BaseActivity() {
 
     private fun startRecording() {
         ContextCompat.startForegroundService(this, Intent(this, BvrService::class.java).setAction(BvrService.START))
+        // Many phones stop background apps with the screen off; ask once to be exempt from battery saving.
+        try {
+            val pm = getSystemService(android.os.PowerManager::class.java)
+            val sp = Prefs.sp(this)
+            if (!pm.isIgnoringBatteryOptimizations(packageName) && !sp.getBoolean("bvr_battery_asked", false)) {
+                sp.edit().putBoolean("bvr_battery_asked", true).apply()
+                startActivity(
+                    Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                        .setData(android.net.Uri.parse("package:$packageName"))
+                )
+            }
+        } catch (e: Exception) {
+            // The phone has no such screen; recording still works.
+        }
     }
 
     private fun refresh() {
@@ -111,10 +125,14 @@ class BvrService : LifecycleService() {
     }
 
     private var recording: Recording? = null
+    private var userStop = false
+    private var restarts = 0
+    private var wake: android.os.PowerManager.WakeLock? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         if (intent?.action == STOP) {
+            userStop = true
             stopRecording()
             return START_NOT_STICKY
         }
@@ -130,6 +148,15 @@ class BvrService : LifecycleService() {
             return START_NOT_STICKY
         }
         running = true
+        userStop = false
+        restarts = 0
+        // Keep the processor awake so recording goes on when the screen is off or the phone is locked.
+        try {
+            val pm = getSystemService(android.os.PowerManager::class.java)
+            wake = pm.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "FaisalAI:bvr").apply { acquire() }
+        } catch (e: Exception) {
+            wake = null
+        }
         listener?.invoke()
         startRecording()
         return START_NOT_STICKY
@@ -185,7 +212,14 @@ class BvrService : LifecycleService() {
                 recording = recorder.prepareRecording(this, output)
                     .withAudioEnabled()
                     .start(ContextCompat.getMainExecutor(this)) { event ->
-                        if (event is VideoRecordEvent.Finalize) shutDown()
+                        if (event is VideoRecordEvent.Finalize) {
+                            // If the system cut the recording (not the user), save it and start the next part.
+                            if (!userStop && event.hasError() && restarts < 20) {
+                                restarts++
+                                recording = null
+                                startRecording()
+                            } else shutDown()
+                        }
                     }
             } catch (e: Exception) {
                 shutDown() // camera busy or unavailable
@@ -204,6 +238,8 @@ class BvrService : LifecycleService() {
     }
 
     private fun shutDown() {
+        try { if (wake?.isHeld == true) wake?.release() } catch (e: Exception) { }
+        wake = null
         running = false
         listener?.invoke()
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
@@ -211,6 +247,8 @@ class BvrService : LifecycleService() {
     }
 
     override fun onDestroy() {
+        userStop = true
+        try { if (wake?.isHeld == true) wake?.release() } catch (e: Exception) { }
         recording?.stop()
         recording = null
         running = false

@@ -125,7 +125,17 @@
     <string name="s_policy">Privacy policy</string>
     <string name="s_about">About</string>
     <string name="about_text">Faisal AI Assistance\nVersion %1$s\n\nOne app for AI chat, visual search, text reading, translation, web, maps, background video and file sharing.\n\nSmarter Today • Better Tomorrow • Together\nPowered by faiNET</string>
-    <string name="policy_text">Faisal AI Assistance has no accounts and does not send your data to faiNET.\n\nYour API keys, chats, notes and received files are stored only on this phone. Erase all data in Settings removes them.\n\nWhen you use AI Chat, Lens, Text Reader, Translator or AI Says, your text and photos are sent to the AI provider you chose (Cloudflare, Mistral or Google Gemini) to get an answer. Web searches are sent to Google or Tavily. Maps load from OpenStreetMap, and place searches go to its Nominatim service. Each of these services has its own privacy policy.\n\nThe camera, microphone and location are used only when you open a feature that needs them. BVR videos are saved on this phone and are not uploaded.\n\nShare Files sends files directly between phones on the same Wi‑Fi. The transfer is not encrypted.</string>
+    <string name="policy_text">Faisal AI Assistance has no accounts and does not send your data to faiNET.
+
+Your API keys, chats, notes, recordings and received files are stored only on this phone. Erase all data in Settings removes them.
+
+When you use AI Chat, Live, Lens, Text Reader, Translator or AI Says, your text, photos and voice are sent to the AI provider (Cloudflare or Google Gemini) to get an answer. Web searches go to Google Gemini with Google Search; image and video results come from Wikimedia Commons. Maps load from OpenStreetMap, place searches go to Nominatim and routes to OSRM. Each of these services has its own privacy policy.
+
+The camera, microphone and location are used only when you open a feature that needs them.
+
+Background Video Recorder (BVR): when you start it, the app records video and sound and keeps recording even when the screen is off, the phone is locked, or you use other apps, until you press Stop. Android shows a notification for the whole recording and the phone\'s camera and microphone indicators stay on; this cannot be hidden. Videos are saved on this phone (Movies/FaisalAI) and are never uploaded. You are responsible for using BVR lawfully: in many places recording other people without their knowledge or consent is illegal. Do not use BVR to spy on anyone.
+
+Share Files sends files directly between phones on the same Wi‑Fi. The transfer is not encrypted.</string>
     <string name="k_cf_account" translatable="false">Cloudflare account ID</string>
     <string name="k_cf_token" translatable="false">Cloudflare API token</string>
     <string name="k_cf_model" translatable="false">Cloudflare model</string>
