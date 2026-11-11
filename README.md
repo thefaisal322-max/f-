@@ -9,18 +9,21 @@
 
 هر ځل چې `main` بدل شي، GitHub نوی APK جوړوي او همدا لینک تازه کوي. ټول builds په یوه ثابت کیلي لاسلیک کېږي (`app/debug.p12`)، نو نوی APK په زاړه باندې نصبېږي او تنظیمات نه ورکېږي. دا کیلي عامه ده: د ازموینې لپاره سمه ده، خو Google Play ته د لېږلو لپاره خپله شخصي کیلي جوړه کړئ.
 
-## Keys (په ایپ کې Settings)
+## Keys (متغیرونه)
 
-Keys یوازې په تلیفون کې ساتل کېږي. هېڅکله یې په دې repo کې مه لیکئ.
+یوازې دوه خدمتونه کارول کېږي: **Gemini** او **Cloudflare**. Keys په کوډ کې نه لیکل کېږي، بلکې د GitHub Secrets په توګه ورکول کېږي:
 
-| Key | د څه لپاره | له کومه |
-|---|---|---|
-| Cloudflare account ID + API token | AI Chat، Translator، AI Says | dash.cloudflare.com (Workers AI) |
-| Mistral API key | همغه، که Mistral وټاکئ | console.mistral.ai |
-| Gemini API key | د عکسونو لوستل، د پښتو او دري غږ (اورېدل او ویل)، او AI | aistudio.google.com |
-| Tavily API key | په "AI Says" کې ژوندۍ ویب پایلې | tavily.com |
+GitHub repo ← Settings ← Secrets and variables ← Actions ← New repository secret
 
-یو AI key بس دی. **AI provider** په Settings کې ټاکل کېږي؛ "Automatic" لومړی هغه کاروي چې key لري (Cloudflare، بیا Mistral، بیا Gemini). که Gemini key موجود وي، عکسونه تل Gemini ته ځي. د ماډل نومونه په Settings کې بدلېدای شي.
+| Secret | قیمت |
+|---|---|
+| `GEMINI_API_KEY` | د Gemini key (aistudio.google.com) |
+| `CF_ACCOUNT_ID` | د Cloudflare account ID |
+| `CF_API_TOKEN` | د Cloudflare Workers AI token |
+
+بیا Actions ← Build APK ← Run workflow. **مهم:** که Secrets ورکړئ، APK کې ستاسو keys وي، نو دا APK د عامه لینک پر ځای یوازې په Actions ← artifact (`FaisalAI-apk`) کې ساتل کېږي، چې یوازې تاسو یې دانلودولای شئ. که Secrets نه وي، APK بې keys دی او keys په ایپ کې Settings کې لیکل کېږي.
+
+په خپل کمپیوټر کې د جوړولو لپاره `keys.properties` فایل جوړ کړئ (په git کې نه ځي) چې `GEMINI_API_KEY=...` لري.
 
 ## برخې
 
