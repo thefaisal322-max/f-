@@ -208,8 +208,6 @@ Share Files sends files directly between phones on the same Wi‑Fi. The transfe
     <string name="k_rates_url" translatable="false">Exchange rates URL</string>
     <string name="no_results">No results found.</string>
     <string name="no_key">No AI key found. Set GEMINI_API_KEY or CF keys when building, or add one in Settings.</string>
-    <string name="chat_welcome">Welcome
-this f+</string>
     <string name="chat_hint2">Ask anything</string>
     <string name="sh_title">Share Files</string>
     <string name="sh_sub">Fast, no internet needed. Both phones on the same Wi‑Fi or hotspot.</string>
@@ -252,4 +250,6 @@ this f+</string>
     <string name="map_need_me">Turn on your location first (tap My location).</string>
     <string name="map_no_route">No route found.</string>
     <string name="map_pick">Saved places</string>
+    <string name="live_ask_hint">Ask about what you see…</string>
+    <string name="chat_welcome">Welcome to F+</string>
 </resources>

@@ -191,8 +191,6 @@ Share Files فایلونه په یوه Wi‑Fi کې د تلیفونونو تر �
     <string name="s_tools">ټولز</string>
     <string name="no_results">هېڅ پایله ونه موندل شوه.</string>
     <string name="no_key">د AI key نشته. د جوړولو پر مهال یې ورکړئ یا په Settings کې یې ولیکئ.</string>
-    <string name="chat_welcome">ښه راغلاست
-دا f+ دی</string>
     <string name="chat_hint2">هر څه وپوښتئ</string>
     <string name="sh_title">فایلونه شریکول</string>
     <string name="sh_sub">چټک، انټرنیټ نه غواړي. دواړه تلیفونونه په یوه Wi‑Fi یا هاټسپاټ کې.</string>
@@ -235,4 +233,6 @@ Share Files فایلونه په یوه Wi‑Fi کې د تلیفونونو تر �
     <string name="map_need_me">لومړی خپل ځای فعال کړئ («زما ځای» ووهئ).</string>
     <string name="map_no_route">لار ونه موندل شوه.</string>
     <string name="map_pick">ساتل شوي ځایونه</string>
+    <string name="live_ask_hint">د هغه څه په اړه وپوښتئ چې وینئ…</string>
+    <string name="chat_welcome">F+ ته ښه راغلاست</string>
 </resources>

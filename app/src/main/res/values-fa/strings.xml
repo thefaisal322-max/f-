@@ -191,8 +191,6 @@ Share Files فایل‌ها را مستقیم بین گوشی‌های یک Wi�
     <string name="s_tools">ابزارها</string>
     <string name="no_results">نتیجه‌ای پیدا نشد.</string>
     <string name="no_key">کلید AI یافت نشد. هنگام ساخت یا در تنظیمات وارد کنید.</string>
-    <string name="chat_welcome">خوش آمدید
-این f+ است</string>
     <string name="chat_hint2">هر چیزی بپرسید</string>
     <string name="sh_title">اشتراک فایل</string>
     <string name="sh_sub">سریع، بدون اینترنت. هر دو گوشی در یک Wi‑Fi یا هاتسپات.</string>
@@ -235,4 +233,6 @@ Share Files فایل‌ها را مستقیم بین گوشی‌های یک Wi�
     <string name="map_need_me">ابتدا موقعیت خود را فعال کنید.</string>
     <string name="map_no_route">مسیری پیدا نشد.</string>
     <string name="map_pick">مکان‌های ذخیره‌شده</string>
+    <string name="live_ask_hint">درباره آنچه می‌بینید بپرسید…</string>
+    <string name="chat_welcome">به F+ خوش آمدید</string>
 </resources>

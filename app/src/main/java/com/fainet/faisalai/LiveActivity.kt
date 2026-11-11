@@ -103,7 +103,16 @@ class LiveActivity : BaseActivity() {
             )
         }
         mic.setOnClickListener { if (!busy) voice.toggle() }
-        findViewById<Button>(R.id.btnAsk).setOnClickListener { ask(getString(R.string.ask_what)) }
+        // Type a question about what the camera sees and press send on the keyboard.
+        val askBox = findViewById<android.widget.EditText>(R.id.askBox)
+        askBox.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId != android.view.inputmethod.EditorInfo.IME_ACTION_SEND) return@setOnEditorActionListener false
+            val text = askBox.text.toString().trim().ifEmpty { getString(R.string.ask_what) }
+            askBox.setText("")
+            (getSystemService(INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager).hideSoftInputFromWindow(askBox.windowToken, 0)
+            ask(text)
+            true
+        }
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
         else cameraPermission.launch(Manifest.permission.CAMERA)
