@@ -3,6 +3,6 @@
     android:id="@+id/bar"
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
-    android:background="@color/bg"
+    android:background="?attr/colBg"
     app:navigationIcon="@drawable/ic_back"
-    app:titleTextColor="@color/fg" />
+    app:titleTextColor="?attr/colFg" />

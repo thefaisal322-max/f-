@@ -2,46 +2,48 @@
 
 د Android اصلي ایپ، په Kotlin لیکل شوی. Package: `com.fainet.faisalai`، Android 8.0 (API 26) او پورته.
 
-> دا کوډ تر اوسه نه دی compile شوی او په تلیفون نه دی ازمایل شوی. په لومړي build کې ممکن وړې تېروتنې راووځي؛ که راووتې، د تېروتنې متن راولېږئ.
+## APK له کومه واخلم
 
-## څنګه یې جوړ کړئ (APK)
+هر ځل چې کوډ بدل شي، GitHub پخپله APK جوړوي:
+**Actions** ټب > وروستی run > **Artifacts** > `FaisalAI-debug-apk`. دا یو zip دی چې دننه یې `app-debug.apk` دی.
 
-1. په کمپیوټر کې **Android Studio** نصب کړئ (وړیا: developer.android.com/studio).
-2. دا zip خلاص کړئ، بیا په Android Studio کې **File > Open** او د `FaisalAI` فولډر وټاکئ.
-3. صبر وکړئ چې Gradle sync بشپړ شي (لومړی ځل انټرنېټ ته اړتیا لري).
-4. تلیفون په USB ونښلوئ او **Run** ووهئ، یا **Build > Build APK(s)** وټاکئ.
-   APK دلته جوړېږي: `app/build/outputs/apk/debug/app-debug.apk`
+په کمپیوټر کې د جوړولو لپاره: فولډر په **Android Studio** کې خلاص کړئ او **Build > Build APK(s)** وټاکئ.
 
-که Android Studio د Gradle یا plugin د نوي کولو وړاندیز وکړ، منلای یې شئ.
+## Keys (په ایپ کې Settings)
 
-## د AI لپاره API key
+Keys یوازې په تلیفون کې ساتل کېږي. هېڅکله یې په دې repo کې مه لیکئ.
 
-AI Chat، Lens، Text Reader او Translator د Google Gemini API کاروي.
+| Key | د څه لپاره | له کومه |
+|---|---|---|
+| Cloudflare account ID + API token | AI Chat، Translator، AI Says | dash.cloudflare.com (Workers AI) |
+| Mistral API key | همغه، که Mistral وټاکئ | console.mistral.ai |
+| Gemini API key | د عکسونو لوستل (Lens، Text Reader) او AI | aistudio.google.com |
+| Tavily API key | په "AI Says" کې ژوندۍ ویب پایلې | tavily.com |
 
-1. له **aistudio.google.com** څخه یو API key واخلئ.
-2. په ایپ کې **Settings > Gemini API key** ته لاړ شئ او key ولیکئ.
-
-Key یوازې په تلیفون کې ساتل کېږي. د ماډل نوم په Settings کې بدلېدای شي؛ ډیفالټ یې `gemini-flash-latest` دی.
+یو AI key بس دی. **AI provider** په Settings کې ټاکل کېږي؛ "Automatic" لومړی هغه کاروي چې key لري (Cloudflare، بیا Mistral، بیا Gemini). که Gemini key موجود وي، عکسونه تل Gemini ته ځي. د ماډل نومونه په Settings کې بدلېدای شي.
 
 ## برخې
 
 | برخه | څه کوي | فایل |
 |---|---|---|
-| AI Chat | له Gemini سره خبرې، تاریخ په تلیفون کې | `ChatActivity.kt` |
-| Lens | عکس واخلئ یا وټاکئ، ایپ یې پېژني | `VisionActivity.kt` |
-| Text Reader (OCR) | د عکس متن لولي، پښتو او دري هم | `VisionActivity.kt` |
-| BVR | په شالید کې ویډیو ثبتوي، سکرین بند هم | `Bvr.kt` |
-| Browser | د ایپ دننه براوزر او Google لټون | `BrowserActivity.kt` |
-| Navigation | Google Maps د ایپ دننه، له موقعیت سره | `BrowserActivity.kt` |
-| Translator | ۱۲ ژبې | `TranslateActivity.kt` |
-| Share Files | له بل تلیفون سره د Wi‑Fi له لارې فایل لېږل او اخیستل | `Share.kt` |
-| Files | ساتل شوي یادښتونه او ترلاسه شوي فایلونه | `FilesSettings.kt` |
-| Settings | تیم، ژبه، AI، BVR، محرمیت | `FilesSettings.kt`, `res/xml/prefs.xml` |
+| AI Chat | لاندې: ضمیمه، متن بکس، لېږل. څنګ مینو: New chat او پخوانۍ خبرې | `ChatActivity.kt` |
+| Lens | په عکس کې بارکوډ او QR لولي، عکس پېژني، په ویب کې یې لټوي | `VisionActivity.kt` |
+| Text Reader | د عکس متن په هره ژبه لولي | `VisionActivity.kt` |
+| Browser | پورته د لټون بکس؛ لاندې AI Says، All، Images، Videos، News | `BrowserActivity.kt` |
+| Navigation | د نړۍ نقشه (OpenStreetMap) تر سړک پورې، لټون، زما ځای، لارښوونه | `MapActivity.kt` |
+| Translator | ۶۸ ژبې، هره یوه بلې ته | `TranslateActivity.kt` |
+| BVR | په شالید کې ویډیو ثبتوي | `Bvr.kt` |
+| Share Files | د Wi‑Fi له لارې فایل لېږل او اخیستل، له QR کوډ سره | `Share.kt` |
+| Files | د ایپ ټول فایلونه له انځورګوټي (thumbnail) او لینک سره | `FilesSettings.kt` |
+| Settings | ژبه، ۴ تیمونه، AI، BVR، محرمیت، Policy، About | `FilesSettings.kt`, `res/xml/prefs.xml` |
+
+AI، Tavily، بارکوډ او QR کوډ ټول په `Core.kt` کې دي.
 
 ## هغه څه چې باید پوه شئ
 
-- **BVR:** Android د ثبت په ټول وخت کې یو نوټیفیکیشن ښيي چې Stop تڼۍ لري. دا د Android قانون دی او نه لرې کېږي. ویډیوګانې په `Movies/FaisalAI` کې ساتل کېږي.
-- **Share Files:** دواړه تلیفونونه باید په یوه Wi‑Fi یا هاټسپاټ وي. بل تلیفون ایپ ته اړتیا نه لري؛ یوازې ښودل شوې پته په براوزر کې خلاصوي. لېږد کوډ شوی (encrypted) نه دی، نو یوازې په باوري شبکه کې یې وکاروئ.
-- **Navigation:** Google Maps د ویب پاڼې په توګه خلاصېږي. د Maps SDK دننه نقشه د Google Cloud API key او billing غواړي، نو دلته نه ده کارول شوې.
-- **AI لګښت:** د Gemini API وړیا حد لري؛ له هغه وروسته Google پیسې اخلي.
-- **ژبې:** English، پښتو، دري. متنونه په `res/values`, `res/values-ps`, `res/values-fa` کې دي.
+- **BVR:** Android د ثبت په ټول وخت کې یو نوټیفیکیشن ښيي چې Stop تڼۍ لري. دا د Android قانون دی. ویډیوګانې په `Movies/FaisalAI` کې ساتل کېږي.
+- **Share Files:** دواړه تلیفونونه باید په یوه Wi‑Fi یا هاټسپاټ وي. بل تلیفون QR کوډ سکن کوي یا پته په براوزر کې خلاصوي. سرعت په Wi‑Fi پورې اړه لري او تضمین نه دی. لېږد encrypted نه دی.
+- **Lens:** کوډونه له اخیستل شوي عکس څخه لوستل کېږي، نه له ژوندۍ کامرې.
+- **Navigation:** نقشه له OpenStreetMap څخه ده او key نه غواړي. "Directions" لار په Google Maps کې خلاصوي.
+- **تیمونه:** Classic، Black، White، Neon glow. رنګونه په `res/values/themes.xml` کې دي.
+- **ژبې:** English، پښتو، دري. متنونه په `res/values`, `res/values-ps`, `res/values-fa` کې دي. نوې ژبه د نوي `values-xx/strings.xml` فایل په زیاتولو راځي.

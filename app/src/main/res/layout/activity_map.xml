@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="?attr/colBg">
+    <include layout="@layout/bar" />
+    <EditText android:id="@+id/q" android:layout_width="match_parent" android:layout_height="48dp"
+        android:layout_marginStart="12dp" android:layout_marginEnd="12dp" android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_field" android:drawableStart="@drawable/ic_search" android:drawablePadding="10dp"
+        android:paddingStart="14dp" android:paddingEnd="14dp" android:hint="@string/map_hint"
+        android:textColor="?attr/colFg" android:textSize="16sp" android:inputType="text" android:imeOptions="actionSearch"
+        android:maxLines="1" android:importantForAutofill="no" />
+    <org.osmdroid.views.MapView android:id="@+id/map" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="8dp">
+        <Button android:id="@+id/btnLocate" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/my_location" />
+        <Button android:id="@+id/btnDirections" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="8dp" android:text="@string/directions" />
+    </LinearLayout>
+</LinearLayout>

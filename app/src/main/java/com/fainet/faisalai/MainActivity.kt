@@ -39,7 +39,7 @@ class MainActivity : BaseActivity() {
             Tile(R.string.t_ocr, R.drawable.ic_ocr, "main vision") { go(VisionActivity::class.java) { putExtra("mode", "ocr") } },
             Tile(R.string.t_bvr, R.drawable.ic_bvr, "main vision") { go(BvrActivity::class.java) },
             Tile(R.string.t_browser, R.drawable.ic_browser, "main web") { go(BrowserActivity::class.java) },
-            Tile(R.string.t_nav, R.drawable.ic_nav, "main web") { go(BrowserActivity::class.java) { putExtra("url", "https://www.google.com/maps") } },
+            Tile(R.string.t_nav, R.drawable.ic_nav, "main web") { go(MapActivity::class.java) },
             Tile(R.string.t_tr, R.drawable.ic_translate, "main web") { go(TranslateActivity::class.java) },
             Tile(R.string.t_share, R.drawable.ic_share, "main web") { go(ShareActivity::class.java) },
             Tile(R.string.t_files, R.drawable.ic_file, "main") { go(FilesActivity::class.java) },

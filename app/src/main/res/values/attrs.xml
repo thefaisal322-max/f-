@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="colBg" format="color" />
+    <attr name="colSurface" format="color" />
+    <attr name="colSurface2" format="color" />
+    <attr name="colLine" format="color" />
+    <attr name="colFg" format="color" />
+    <attr name="colMuted" format="color" />
+    <attr name="colAccent" format="color" />
+    <attr name="colOnAccent" format="color" />
+    <attr name="colDanger" format="color" />
+    <attr name="colGlow" format="color" />
+</resources>

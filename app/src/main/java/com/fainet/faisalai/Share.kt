@@ -8,6 +8,7 @@ import android.provider.OpenableColumns
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import java.io.BufferedInputStream
@@ -41,6 +42,8 @@ class ShareActivity : BaseActivity() {
     private lateinit var info: TextView
     private lateinit var address: TextView
     private lateinit var received: TextView
+    private lateinit var qr: ImageView
+    private lateinit var qrHint: TextView
 
     private val picker = registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         if (uris.isNotEmpty()) {
@@ -60,6 +63,8 @@ class ShareActivity : BaseActivity() {
         info = findViewById(R.id.info)
         address = findViewById(R.id.address)
         received = findViewById(R.id.received)
+        qr = findViewById(R.id.qr)
+        qrHint = findViewById(R.id.qrHint)
 
         findViewById<Button>(R.id.pick).setOnClickListener { picker.launch(arrayOf("*/*")) }
         start.setOnClickListener { if (server == null) begin() else end() }
@@ -90,9 +95,17 @@ class ShareActivity : BaseActivity() {
             return
         }
         server = s
-        address.text = "http://$ip:${ShareServer.PORT}"
+        val link = "http://$ip:${ShareServer.PORT}"
+        address.text = link
         info.visibility = View.VISIBLE
         address.visibility = View.VISIBLE
+        try {
+            qr.setImageBitmap(Codes.qr(link, 600))
+            qr.visibility = View.VISIBLE
+            qrHint.visibility = View.VISIBLE
+        } catch (e: Exception) {
+            // The code could not be drawn; the address above still works.
+        }
         start.setText(R.string.share_stop)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
@@ -102,6 +115,8 @@ class ShareActivity : BaseActivity() {
         server = null
         info.visibility = View.GONE
         address.visibility = View.GONE
+        qr.visibility = View.GONE
+        qrHint.visibility = View.GONE
         start.setText(R.string.share_start)
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
@@ -125,6 +140,7 @@ class ShareServer(
 ) {
     companion object {
         const val PORT = 8080
+        const val BUFFER = 256 * 1024 // large buffers keep transfers fast on good Wi-Fi
 
         /** This phone's address on Wi-Fi or on its own hotspot, or null when there is no local network. */
         fun localIp(): String? {
@@ -189,8 +205,11 @@ class ShareServer(
 
     private fun handle(client: Socket) {
         client.soTimeout = 30000
-        val ins = BufferedInputStream(client.getInputStream())
-        val out = BufferedOutputStream(client.getOutputStream())
+        client.tcpNoDelay = true
+        client.sendBufferSize = BUFFER * 4
+        client.receiveBufferSize = BUFFER * 4
+        val ins = BufferedInputStream(client.getInputStream(), BUFFER)
+        val out = BufferedOutputStream(client.getOutputStream(), BUFFER)
         val request = readLine(ins).split(" ")
         if (request.size < 2) return
         var length = 0L
@@ -221,7 +240,7 @@ class ShareServer(
                     .replace(Regex("[\\\\/:*?\"<>|]"), "_").ifEmpty { "file" }
                 val dest = unique(File(Storage.dir(ctx, "Received"), name))
                 FileOutputStream(dest).use { fo ->
-                    val buf = ByteArray(64 * 1024)
+                    val buf = ByteArray(BUFFER)
                     var left = length
                     while (left > 0) {
                         val n = ins.read(buf, 0, minOf(buf.size.toLong(), left).toInt())
@@ -290,7 +309,7 @@ class ShareServer(
         if (size >= 0) head.append("Content-Length: ").append(size).append("\r\n")
         head.append("Connection: close\r\n\r\n")
         out.write(head.toString().toByteArray())
-        input.use { it.copyTo(out, 64 * 1024) }
+        input.use { it.copyTo(out, BUFFER) }
     }
 
     private fun escape(s: String): String =

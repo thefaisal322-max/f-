@@ -144,7 +144,7 @@ class BvrService : LifecycleService() {
         val stop = PendingIntent.getService(this, 1, Intent(this, BvrService::class.java).setAction(STOP), flags)
         val open = PendingIntent.getActivity(this, 2, Intent(this, BvrActivity::class.java), flags)
         return NotificationCompat.Builder(this, CHANNEL)
-            .setSmallIcon(R.drawable.ic_bvr)
+            .setSmallIcon(R.drawable.ic_bvr_notif)
             .setContentTitle(getString(R.string.bvr_notif_title))
             .setContentText(getString(R.string.bvr_notif_text))
             .setContentIntent(open)

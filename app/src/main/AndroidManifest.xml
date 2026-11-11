@@ -27,7 +27,7 @@
         android:label="@string/app_name"
         android:localeConfig="@xml/locales_config"
         android:supportsRtl="true"
-        android:theme="@style/Theme.FaisalAI"
+        android:theme="@style/Theme.FaisalAI.Classic"
         android:usesCleartextTraffic="true"
         tools:targetApi="34">
 
@@ -45,6 +45,8 @@
         <activity android:name=".ShareActivity" />
         <activity android:name=".FilesActivity" />
         <activity android:name=".SettingsActivity" />
+        <activity android:name=".MapActivity" android:windowSoftInputMode="adjustPan" />
+        <activity android:name=".InfoActivity" />
 
         <service
             android:name=".BvrService"

@@ -7,14 +7,18 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.graphics.ImageDecoder
 import android.media.AudioManager
 import android.media.ToneGenerator
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.OpenableColumns
 import android.util.Base64
+import android.util.TypedValue
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -22,6 +26,14 @@ import androidx.core.content.FileProvider
 import androidx.core.os.LocaleListCompat
 import androidx.preference.PreferenceManager
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.BinaryBitmap
+import com.google.zxing.DecodeHintType
+import com.google.zxing.MultiFormatReader
+import com.google.zxing.RGBLuminanceSource
+import com.google.zxing.common.GlobalHistogramBinarizer
+import com.google.zxing.common.HybridBinarizer
+import com.google.zxing.qrcode.QRCodeWriter
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
@@ -32,32 +44,42 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
-        Prefs.applyTheme(Prefs.sp(this).getString("theme", "system") ?: "system")
+        Prefs.applyNight(Prefs.theme(this))
     }
 }
 
 /** Everything the Settings screen stores. */
 object Prefs {
-    const val DEFAULT_MODEL = "gemini-flash-latest"
-
     fun sp(c: Context): SharedPreferences = PreferenceManager.getDefaultSharedPreferences(c)
-    fun key(c: Context): String = (sp(c).getString("api_key", "") ?: "").trim()
-    fun model(c: Context): String = (sp(c).getString("model", DEFAULT_MODEL) ?: "").trim().ifEmpty { DEFAULT_MODEL }
-    fun sound(c: Context): Boolean = sp(c).getBoolean("sound", false)
-    fun keepHistory(c: Context): Boolean = sp(c).getBoolean("keep_history", true)
-    fun frontCam(c: Context): Boolean = sp(c).getString("bvr_cam", "back") == "front"
-    fun quality(c: Context): String = sp(c).getString("bvr_quality", "HD") ?: "HD"
+    private fun str(c: Context, key: String, def: String = ""): String = (sp(c).getString(key, def) ?: def).trim()
 
-    fun applyTheme(value: String) {
+    /** One of: classic, black, white, neon. Values from version 1 are mapped. */
+    fun theme(c: Context): String = when (str(c, "theme", "classic")) {
+        "black", "dark" -> "black"
+        "white", "light" -> "white"
+        "neon" -> "neon"
+        else -> "classic"
+    }
+
+    fun themeRes(theme: String): Int = when (theme) {
+        "black" -> R.style.Theme_FaisalAI_Black
+        "white" -> R.style.Theme_FaisalAI_White
+        "neon" -> R.style.Theme_FaisalAI_Neon
+        else -> R.style.Theme_FaisalAI_Classic
+    }
+
+    /** Black and Neon are dark, White is light, Classic follows the phone. */
+    fun applyNight(theme: String) {
         AppCompatDelegate.setDefaultNightMode(
-            when (value) {
-                "dark" -> AppCompatDelegate.MODE_NIGHT_YES
-                "light" -> AppCompatDelegate.MODE_NIGHT_NO
+            when (theme) {
+                "black", "neon" -> AppCompatDelegate.MODE_NIGHT_YES
+                "white" -> AppCompatDelegate.MODE_NIGHT_NO
                 else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
             }
         )
@@ -66,6 +88,21 @@ object Prefs {
     fun applyLang(tag: String) {
         AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
     }
+
+    fun provider(c: Context): String = str(c, "provider", "auto")
+    fun cfAccount(c: Context): String = str(c, "cf_account")
+    fun cfToken(c: Context): String = str(c, "cf_token")
+    fun cfModel(c: Context): String = str(c, "cf_model").ifEmpty { "@cf/mistralai/mistral-small-3.1-24b-instruct" }
+    fun mistralKey(c: Context): String = str(c, "mistral_key")
+    fun mistralModel(c: Context): String = str(c, "mistral_model").ifEmpty { "mistral-small-latest" }
+    fun geminiKey(c: Context): String = str(c, "gemini_key").ifEmpty { str(c, "api_key") }
+    fun geminiModel(c: Context): String = str(c, "model").ifEmpty { "gemini-flash-latest" }
+    fun tavilyKey(c: Context): String = str(c, "tavily_key")
+
+    fun sound(c: Context): Boolean = sp(c).getBoolean("sound", false)
+    fun keepHistory(c: Context): Boolean = sp(c).getBoolean("keep_history", true)
+    fun frontCam(c: Context): Boolean = sp(c).getString("bvr_cam", "back") == "front"
+    fun quality(c: Context): String = sp(c).getString("bvr_quality", "HD") ?: "HD"
 
     /** English name of the language the app is shown in, for AI instructions. */
     fun appLangName(c: Context): String =
@@ -89,47 +126,156 @@ object Prefs {
     }
 }
 
-/** Gemini REST client. No SDK, so there is nothing extra to keep up to date. */
-object Gemini {
-    class Turn(val role: String, val text: String) // role: "user" or "model"
+/** Plain HTTP helper and the shared background threads. */
+object Net {
+    val pool: ExecutorService = Executors.newCachedThreadPool()
+    val main = Handler(Looper.getMainLooper())
 
-    private val pool = Executors.newCachedThreadPool()
-    private val main = Handler(Looper.getMainLooper())
+    /** Returns the HTTP status and the response text. Throws IOException when the server cannot be reached. */
+    fun request(method: String, url: String, headers: Map<String, String>, body: String?): Pair<Int, String> {
+        val con = URL(url).openConnection() as HttpURLConnection
+        try {
+            con.requestMethod = method
+            con.connectTimeout = 20000
+            con.readTimeout = 120000
+            headers.forEach { (k, v) -> con.setRequestProperty(k, v) }
+            if (body != null) {
+                con.doOutput = true
+                con.setRequestProperty("Content-Type", "application/json")
+                con.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+            }
+            val code = con.responseCode
+            val stream = if (code in 200..299) con.inputStream else con.errorStream
+            return Pair(code, stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: "")
+        } finally {
+            con.disconnect()
+        }
+    }
+}
+
+/**
+ * The app's AI. It talks to Cloudflare Workers AI, Mistral or Google Gemini,
+ * whichever is chosen in Settings and has a key.
+ */
+object AI {
+    /** role is "user" or "model". [show] is what the chat bubble displays when it differs from what is sent. */
+    class Turn(val role: String, val text: String, val show: String = text)
 
     /** Calls done(answer, error) on the main thread; exactly one of the two is non-null. */
     fun ask(ctx: Context, system: String, turns: List<Turn>, image: Bitmap?, done: (String?, String?) -> Unit) {
-        val key = Prefs.key(ctx)
-        if (key.isEmpty()) {
+        val provider = pick(ctx, image != null)
+        if (provider == null) {
             done(null, ctx.getString(R.string.no_key))
             return
         }
-        val model = Prefs.model(ctx)
-        pool.execute {
+        Net.pool.execute {
             var answer: String? = null
             var error: String? = null
             try {
-                answer = call(key, model, system, turns, image)
+                answer = when (provider) {
+                    "cloudflare" -> openAi(
+                        "https://api.cloudflare.com/client/v4/accounts/${Prefs.cfAccount(ctx)}/ai/v1/chat/completions",
+                        Prefs.cfToken(ctx), Prefs.cfModel(ctx), system, turns, image, imageAsObject = true
+                    )
+                    "mistral" -> openAi(
+                        "https://api.mistral.ai/v1/chat/completions",
+                        Prefs.mistralKey(ctx), Prefs.mistralModel(ctx), system, turns, image, imageAsObject = false
+                    )
+                    else -> gemini(Prefs.geminiKey(ctx), Prefs.geminiModel(ctx), system, turns, image)
+                }
             } catch (e: IOException) {
                 error = ctx.getString(R.string.err_net)
             } catch (e: Exception) {
                 error = e.message ?: ctx.getString(R.string.err_net)
             }
-            main.post { done(answer, error) }
+            Net.main.post { done(answer, error) }
         }
     }
 
-    private fun call(key: String, model: String, system: String, turns: List<Turn>, image: Bitmap?): String {
+    /**
+     * Which provider answers. Photos go to Gemini when it has a key, because it reads
+     * images most reliably. Otherwise the provider chosen in Settings is used, and if
+     * that one has no key, the first provider that does.
+     */
+    private fun pick(ctx: Context, hasImage: Boolean): String? {
+        val cf = Prefs.cfAccount(ctx).isNotEmpty() && Prefs.cfToken(ctx).isNotEmpty()
+        val mistral = Prefs.mistralKey(ctx).isNotEmpty()
+        val gemini = Prefs.geminiKey(ctx).isNotEmpty()
+        if (hasImage && gemini) return "gemini"
+        when (Prefs.provider(ctx)) {
+            "cloudflare" -> if (cf) return "cloudflare"
+            "mistral" -> if (mistral) return "mistral"
+            "gemini" -> if (gemini) return "gemini"
+        }
+        return when {
+            cf -> "cloudflare"
+            mistral -> "mistral"
+            gemini -> "gemini"
+            else -> null
+        }
+    }
+
+    private fun jpegBase64(image: Bitmap): String {
+        val bytes = ByteArrayOutputStream()
+        image.compress(Bitmap.CompressFormat.JPEG, 85, bytes)
+        return Base64.encodeToString(bytes.toByteArray(), Base64.NO_WRAP)
+    }
+
+    private fun parse(text: String): JSONObject = try { JSONObject(text) } catch (e: Exception) { JSONObject() }
+
+    /** Cloudflare and Mistral both speak the OpenAI chat-completions format. */
+    private fun openAi(
+        url: String, key: String, model: String, system: String,
+        turns: List<Turn>, image: Bitmap?, imageAsObject: Boolean
+    ): String {
+        val messages = JSONArray().put(JSONObject().put("role", "system").put("content", system))
+        turns.forEachIndexed { i, t ->
+            val role = if (t.role == "user") "user" else "assistant"
+            if (image != null && i == turns.lastIndex) {
+                val data = "data:image/jpeg;base64," + jpegBase64(image)
+                val part = JSONObject().put("type", "image_url")
+                if (imageAsObject) part.put("image_url", JSONObject().put("url", data)) else part.put("image_url", data)
+                val content = JSONArray().put(JSONObject().put("type", "text").put("text", t.text)).put(part)
+                messages.put(JSONObject().put("role", role).put("content", content))
+            } else {
+                messages.put(JSONObject().put("role", role).put("content", t.text))
+            }
+        }
+        val body = JSONObject().put("model", model).put("messages", messages)
+        val (code, text) = Net.request("POST", url, mapOf("Authorization" to "Bearer $key"), body.toString())
+        val json = parse(text)
+        if (code !in 200..299) {
+            val msg = json.optJSONObject("error")?.optString("message")
+                ?: json.optJSONArray("errors")?.optJSONObject(0)?.optString("message")
+                ?: json.optString("message").ifEmpty { json.optString("detail") }
+            throw RuntimeException(msg.ifEmpty { "HTTP $code" })
+        }
+        val content = json.optJSONArray("choices")?.optJSONObject(0)?.optJSONObject("message")?.opt("content")
+        val answer = when (content) {
+            is String -> content
+            is JSONArray -> {
+                val sb = StringBuilder()
+                for (i in 0 until content.length()) {
+                    val p = content.optJSONObject(i) ?: continue
+                    if (p.optString("type") == "text") sb.append(p.optString("text"))
+                }
+                sb.toString()
+            }
+            else -> ""
+        }
+        if (answer.isBlank()) throw RuntimeException("The AI returned no text.")
+        return answer.trim()
+    }
+
+    private fun gemini(key: String, model: String, system: String, turns: List<Turn>, image: Bitmap?): String {
         val contents = JSONArray()
         turns.forEachIndexed { i, t ->
             val parts = JSONArray().put(JSONObject().put("text", t.text))
             if (image != null && i == turns.lastIndex) {
-                val bytes = ByteArrayOutputStream()
-                image.compress(Bitmap.CompressFormat.JPEG, 85, bytes)
                 parts.put(
                     JSONObject().put(
                         "inline_data",
-                        JSONObject().put("mime_type", "image/jpeg")
-                            .put("data", Base64.encodeToString(bytes.toByteArray(), Base64.NO_WRAP))
+                        JSONObject().put("mime_type", "image/jpeg").put("data", jpegBase64(image))
                     )
                 )
             }
@@ -138,48 +284,108 @@ object Gemini {
         val body = JSONObject()
             .put("system_instruction", JSONObject().put("parts", JSONArray().put(JSONObject().put("text", system))))
             .put("contents", contents)
-
-        val con = URL("https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent")
-            .openConnection() as HttpURLConnection
-        try {
-            con.requestMethod = "POST"
-            con.connectTimeout = 20000
-            con.readTimeout = 120000
-            con.doOutput = true
-            con.setRequestProperty("Content-Type", "application/json")
-            con.setRequestProperty("x-goog-api-key", key)
-            con.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
-
-            val code = con.responseCode
-            val stream = if (code in 200..299) con.inputStream else con.errorStream
-            val text = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
-            val json = try { JSONObject(text) } catch (e: Exception) { JSONObject() }
-            if (code !in 200..299) {
-                val msg = json.optJSONObject("error")?.optString("message") ?: ""
-                throw RuntimeException(msg.ifEmpty { "HTTP $code" })
+        val (code, text) = Net.request(
+            "POST", "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent",
+            mapOf("x-goog-api-key" to key), body.toString()
+        )
+        val json = parse(text)
+        if (code !in 200..299) {
+            val msg = json.optJSONObject("error")?.optString("message") ?: ""
+            throw RuntimeException(msg.ifEmpty { "HTTP $code" })
+        }
+        val parts = json.optJSONArray("candidates")?.optJSONObject(0)
+            ?.optJSONObject("content")?.optJSONArray("parts")
+        val sb = StringBuilder()
+        if (parts != null) {
+            for (i in 0 until parts.length()) {
+                val p = parts.optJSONObject(i) ?: continue
+                if (!p.optBoolean("thought", false)) sb.append(p.optString("text", ""))
             }
-            val parts = json.optJSONArray("candidates")?.optJSONObject(0)
-                ?.optJSONObject("content")?.optJSONArray("parts")
-            val sb = StringBuilder()
-            if (parts != null) {
-                for (i in 0 until parts.length()) {
-                    val p = parts.optJSONObject(i) ?: continue
-                    if (!p.optBoolean("thought", false)) sb.append(p.optString("text", ""))
+        }
+        if (sb.isBlank()) throw RuntimeException("The AI returned no text.")
+        return sb.toString().trim()
+    }
+}
+
+/** Live web results from Tavily, used by "AI Says". */
+object Tavily {
+    class Hit(val title: String, val url: String, val content: String)
+
+    /** Calls done(hits, error) on the main thread; exactly one of the two is non-null. */
+    fun search(ctx: Context, query: String, done: (List<Hit>?, String?) -> Unit) {
+        val key = Prefs.tavilyKey(ctx)
+        Net.pool.execute {
+            var hits: List<Hit>? = null
+            var error: String? = null
+            try {
+                val body = JSONObject().put("query", query).put("max_results", 6).put("search_depth", "basic")
+                val (code, text) = Net.request(
+                    "POST", "https://api.tavily.com/search", mapOf("Authorization" to "Bearer $key"), body.toString()
+                )
+                val json = try { JSONObject(text) } catch (e: Exception) { JSONObject() }
+                if (code !in 200..299) {
+                    val detail = json.optJSONObject("detail")?.optString("error") ?: json.optString("detail")
+                    throw RuntimeException("Tavily: " + detail.ifEmpty { "HTTP $code" })
                 }
+                val list = ArrayList<Hit>()
+                val arr = json.optJSONArray("results")
+                if (arr != null) {
+                    for (i in 0 until arr.length()) {
+                        val o = arr.optJSONObject(i) ?: continue
+                        list.add(Hit(o.optString("title"), o.optString("url"), o.optString("content")))
+                    }
+                }
+                hits = list
+            } catch (e: IOException) {
+                error = ctx.getString(R.string.err_net)
+            } catch (e: Exception) {
+                error = e.message ?: ctx.getString(R.string.err_net)
             }
-            if (sb.isBlank()) throw RuntimeException("The AI returned no text.")
-            return sb.toString().trim()
-        } finally {
-            con.disconnect()
+            Net.main.post { done(hits, error) }
         }
     }
 }
 
-/** Files the app keeps: saved notes and files received from another phone. */
+/** Barcodes and QR codes: reading them from a photo and drawing a QR code. */
+object Codes {
+    /** Returns the content of the first barcode or QR code in the photo, or null when there is none. */
+    fun scan(bmp: Bitmap): String? {
+        val w = bmp.width
+        val h = bmp.height
+        val px = IntArray(w * h)
+        bmp.getPixels(px, 0, w, 0, 0, w, h)
+        val source = RGBLuminanceSource(w, h, px)
+        val hints = mapOf<DecodeHintType, Any>(
+            DecodeHintType.TRY_HARDER to true,
+            DecodeHintType.ALSO_INVERTED to true
+        )
+        for (binary in listOf(BinaryBitmap(HybridBinarizer(source)), BinaryBitmap(GlobalHistogramBinarizer(source)))) {
+            try {
+                return MultiFormatReader().decode(binary, hints).text
+            } catch (e: Exception) {
+                // No code found with this method; try the next one.
+            }
+        }
+        return null
+    }
+
+    fun qr(text: String, size: Int): Bitmap {
+        val matrix = QRCodeWriter().encode(text, BarcodeFormat.QR_CODE, size, size)
+        val px = IntArray(size * size)
+        for (y in 0 until size) {
+            for (x in 0 until size) px[y * size + x] = if (matrix.get(x, y)) Color.BLACK else Color.WHITE
+        }
+        return Bitmap.createBitmap(px, size, size, Bitmap.Config.ARGB_8888)
+    }
+}
+
+/** Files the app keeps: saved notes, files received from another phone, and chats. */
 object Storage {
     private fun root(c: Context): File = c.getExternalFilesDir(null) ?: c.filesDir
 
     fun dir(c: Context, name: String): File = File(root(c), name).apply { mkdirs() }
+
+    fun chatsDir(c: Context): File = File(c.filesDir, "chats").apply { mkdirs() }
 
     fun saveNote(c: Context, prefix: String, text: String): File {
         val safe = prefix.replace(Regex("[^\\p{L}\\p{N}]+"), "_").trim('_').ifEmpty { "note" }
@@ -196,10 +402,24 @@ object Storage {
 
     fun eraseAll(c: Context) {
         listOf("Notes", "Received").forEach { d -> dir(c, d).listFiles()?.forEach { it.delete() } }
+        chatsDir(c).listFiles()?.forEach { it.delete() }
         File(c.filesDir, "chat.json").delete()
     }
 
     fun uri(c: Context, f: File): Uri = FileProvider.getUriForFile(c, c.packageName + ".files", f)
+
+    /** The file name a picked document reports, or "file". */
+    fun displayName(c: Context, uri: Uri): String {
+        try {
+            c.contentResolver.query(uri, null, null, null, null)?.use { cur ->
+                val i = cur.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (cur.moveToFirst() && i >= 0 && !cur.isNull(i)) return cur.getString(i)
+            }
+        } catch (e: Exception) {
+            // The provider gave no name; use the default.
+        }
+        return "file"
+    }
 
     /** Loads a photo scaled so its longer side is at most [max] pixels. */
     fun loadBitmap(c: Context, uri: Uri, max: Int = 1280): Bitmap? = try {
@@ -228,8 +448,22 @@ object Storage {
     }
 }
 
-/** Shared helpers for every screen. */
+/** Shared helpers for every screen, including the theme chosen in Settings. */
 open class BaseActivity : AppCompatActivity() {
+    private var appliedTheme = ""
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        appliedTheme = Prefs.theme(this)
+        setTheme(Prefs.themeRes(appliedTheme))
+        super.onCreate(savedInstanceState)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // The theme was changed in Settings while this screen was in the background.
+        if (Prefs.theme(this) != appliedTheme) recreate()
+    }
+
     protected fun bar(title: Int): MaterialToolbar {
         val tb = findViewById<MaterialToolbar>(R.id.bar)
         tb.setTitle(title)
@@ -238,6 +472,13 @@ open class BaseActivity : AppCompatActivity() {
     }
 
     protected fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
+
+    /** A color of the current theme, e.g. attrColor(R.attr.colFg). */
+    protected fun attrColor(attr: Int): Int {
+        val tv = TypedValue()
+        theme.resolveAttribute(attr, tv, true)
+        return tv.data
+    }
 
     protected fun toast(s: String) = Toast.makeText(this, s, Toast.LENGTH_SHORT).show()
 

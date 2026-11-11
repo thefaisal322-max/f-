@@ -11,8 +11,8 @@ android {
         applicationId = "com.fainet.faisalai"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0-F+"
+        versionCode = 2
+        versionName = "2.0-F+"
     }
     buildTypes {
         release {
@@ -36,6 +36,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-service:2.8.4")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4")
+    implementation("com.google.zxing:core:3.5.3")
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
+    implementation("androidx.drawerlayout:drawerlayout:1.2.0")
     implementation("androidx.camera:camera-core:1.3.4")
     implementation("androidx.camera:camera-camera2:1.3.4")
     implementation("androidx.camera:camera-lifecycle:1.3.4")
