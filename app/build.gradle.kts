@@ -13,6 +13,7 @@ android {
         targetSdk = 34
         versionCode = 4
         versionName = "2.2-F+"
+        resourceConfigurations += listOf("en", "ps", "fa")
     }
     // One fixed key for every build, so a new APK installs over the old one.
     // This key is public (it is in the repository): fine for testing, not for Google Play.
@@ -27,7 +28,9 @@ android {
     }
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfig = signingConfigs.getByName("debug")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -36,6 +39,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
+    packaging {
+        resources.excludes += listOf("META-INF/*.version", "META-INF/LICENSE*", "META-INF/NOTICE*", "kotlin/**", "DebugProbesKt.bin", "**.kotlin_builtins", "**.kotlin_module")
+    }
 }
 
 dependencies {
