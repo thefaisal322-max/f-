@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,7 +7,7 @@ plugins {
 
 // API keys live in variables, never in the source code: environment variables
 // (GitHub Actions secrets) or an untracked keys.properties file in the project root.
-val keyProps = java.util.Properties().apply {
+val keyProps = Properties().apply {
     val f = rootProject.file("keys.properties")
     if (f.exists()) f.inputStream().use { load(it) }
 }
