@@ -57,6 +57,10 @@
         <activity android:name=".ShareActivity" />
         <activity android:name=".FilesActivity" />
         <activity android:name=".SettingsActivity" />
+        <activity android:name=".NotesActivity" android:exported="false" />
+        <activity android:name=".NoteEditActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ProfileActivity" android:exported="false" />
+        <activity android:name=".PinActivity" android:exported="false" />
         <activity android:name=".MapActivity" android:windowSoftInputMode="adjustPan" />
         <activity android:name=".InfoActivity" />
         <activity android:name=".LiveActivity" />

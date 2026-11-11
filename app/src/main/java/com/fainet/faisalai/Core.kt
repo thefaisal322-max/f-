@@ -13,6 +13,7 @@ import android.media.AudioManager
 import android.media.ToneGenerator
 import android.net.Uri
 import android.os.Build
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -53,6 +54,23 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         Prefs.applyNight(Prefs.theme(this))
+        // Count the screens on show, to know when the whole app goes to the background (for the PIN).
+        registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
+            private var started = 0
+            override fun onActivityStarted(a: android.app.Activity) {
+                if (started == 0) Lock.appForeground()
+                started++
+            }
+            override fun onActivityStopped(a: android.app.Activity) {
+                started--
+                if (started <= 0) Lock.appBackground()
+            }
+            override fun onActivityCreated(a: android.app.Activity, b: Bundle?) {}
+            override fun onActivityResumed(a: android.app.Activity) {}
+            override fun onActivityPaused(a: android.app.Activity) {}
+            override fun onActivitySaveInstanceState(a: android.app.Activity, b: Bundle) {}
+            override fun onActivityDestroyed(a: android.app.Activity) {}
+        })
     }
 }
 
@@ -456,11 +474,13 @@ object Storage {
         val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val f = File(dir(c, "Notes"), "${safe}_$stamp.txt")
         f.writeText(text, Charsets.UTF_8)
+        // Saved results also go to Download/Faisal/Notes.
+        Public.save(c, "Notes", f.name, f, "text/plain")
         return f
     }
 
     fun all(c: Context): List<File> =
-        listOf("Notes", "Received", "Scans", "Codes")
+        listOf("Received", "Scans", "Codes")
             .flatMap { dir(c, it).listFiles()?.filter { f -> f.isFile } ?: emptyList() }
             .sortedByDescending { it.lastModified() }
 
@@ -520,6 +540,32 @@ open class BaseActivity : AppCompatActivity() {
         appliedTheme = Prefs.theme(this)
         setTheme(Prefs.themeRes(appliedTheme))
         super.onCreate(savedInstanceState)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // With a PIN set, every screen asks for it until the PIN is entered.
+        if (this !is PinActivity && !Lock.unlocked && Lock.hasPin(this)) startActivity(Intent(this, PinActivity::class.java))
+    }
+
+    protected fun scanTabs(index: Int) {
+        val tabs = findViewById<com.google.android.material.tabs.TabLayout>(R.id.scanTabs) ?: return
+        listOf(R.string.t_scan, R.string.t_ocr, R.string.t_lens).forEach { tabs.addTab(tabs.newTab().setText(it), false) }
+        tabs.getTabAt(index)?.select()
+        tabs.addOnTabSelectedListener(object : com.google.android.material.tabs.TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(t: com.google.android.material.tabs.TabLayout.Tab) {
+                if (t.position == index) return
+                val next = when (t.position) {
+                    0 -> Intent(this@BaseActivity, ScannerActivity::class.java)
+                    1 -> Intent(this@BaseActivity, VisionActivity::class.java).putExtra("mode", "ocr")
+                    else -> Intent(this@BaseActivity, VisionActivity::class.java).putExtra("mode", "lens")
+                }
+                startActivity(next)
+                finish()
+            }
+            override fun onTabUnselected(t: com.google.android.material.tabs.TabLayout.Tab) {}
+            override fun onTabReselected(t: com.google.android.material.tabs.TabLayout.Tab) {}
+        })
     }
 
     override fun onResume() {

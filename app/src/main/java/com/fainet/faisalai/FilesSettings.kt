@@ -32,8 +32,8 @@ import java.io.File
 class FilesActivity : BaseActivity() {
 
     /** [file] is null for BVR videos, which live in the phone's Movies folder. */
-    private class Item(val name: String, val uri: Uri, val size: Long, val file: File?, val mime: String) {
-        val link: String get() = file?.absolutePath ?: uri.toString()
+    private class Item(val name: String, val uri: Uri, val size: Long, val file: File?, val mime: String, val path: String? = null) {
+        val link: String get() = path ?: file?.absolutePath ?: uri.toString()
     }
 
     private var items: List<Item> = emptyList()
@@ -86,33 +86,13 @@ class FilesActivity : BaseActivity() {
         empty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
     }
 
-    /** BVR videos. Without a storage permission Android lists only the videos this app recorded. */
-    private fun recordedVideos(): List<Item> {
-        if (Build.VERSION.SDK_INT < 29) return emptyList()
-        val found = ArrayList<Item>()
-        try {
-            val base = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-            contentResolver.query(
-                base,
-                arrayOf(MediaStore.Video.Media._ID, MediaStore.Video.Media.DISPLAY_NAME, MediaStore.Video.Media.SIZE),
-                MediaStore.Video.Media.RELATIVE_PATH + " LIKE ?",
-                arrayOf("Movies/FaisalAI%"),
-                MediaStore.Video.Media.DATE_ADDED + " DESC"
-            )?.use { c ->
-                while (c.moveToNext()) {
-                    val uri = Uri.withAppendedPath(base, c.getLong(0).toString())
-                    found.add(Item(c.getString(1) ?: "video.mp4", uri, c.getLong(2), null, "video/mp4"))
-                }
-            }
-        } catch (e: Exception) {
-            // The media library is unavailable; the other files are still listed.
-        }
-        return found
-    }
+    /** Everything in Download/Faisal: BVR videos, received files, scans, codes and notes. */
+    private fun recordedVideos(): List<Item> =
+        Public.list(this).map { Item(it.name, it.uri, it.size, null, Public.mime(it.name), it.path) }
 
     private fun thumbnail(item: Item): Bitmap? = try {
         when {
-            item.file == null && Build.VERSION.SDK_INT >= 29 -> contentResolver.loadThumbnail(item.uri, Size(160, 160), null)
+            item.file == null && item.uri.scheme == "content" && Build.VERSION.SDK_INT >= 29 -> contentResolver.loadThumbnail(item.uri, Size(160, 160), null)
             item.mime.startsWith("image/") -> Storage.loadBitmap(this, item.uri, 160)
             item.mime.startsWith("video/") && item.file != null && Build.VERSION.SDK_INT >= 29 ->
                 ThumbnailUtils.createVideoThumbnail(item.file, Size(160, 160), null)
@@ -179,7 +159,7 @@ class FilesActivity : BaseActivity() {
 
     private fun delete(item: Item) {
         try {
-            if (item.file != null) item.file.delete() else contentResolver.delete(item.uri, null, null)
+            if (item.file != null) item.file.delete() else Public.delete(this, item.uri)
         } catch (e: Exception) {
             // Android refused to delete the video; it stays in the list.
         }
@@ -198,6 +178,15 @@ class SettingsActivity : BaseActivity() {
 }
 
 class SettingsFragment : PreferenceFragmentCompat() {
+    override fun onResume() {
+        super.onResume()
+        findPreference<Preference>("profile")?.let {
+            val sp = Prefs.sp(requireContext())
+            val name = (sp.getString("pf_first", "") + " " + sp.getString("pf_last", "")).trim()
+            it.summary = name.ifEmpty { sp.getString("pf_email", "") }
+        }
+    }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.prefs, rootKey)
 
@@ -213,20 +202,15 @@ class SettingsFragment : PreferenceFragmentCompat() {
             true
         }
 
-        // Keys are typed as passwords and never shown in the list.
-        for (key in listOf("cf_token", "gemini_key")) {
-            findPreference<EditTextPreference>(key)?.apply {
-                setOnBindEditTextListener {
-                    it.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-                }
-                summaryProvider = Preference.SummaryProvider<EditTextPreference> { p ->
-                    if (p.text.isNullOrEmpty()) getString(R.string.s_key_sum) else "••••••••"
-                }
+        findPreference<Preference>("profile")?.apply {
+            val sp = Prefs.sp(requireContext())
+            val name = (sp.getString("pf_first", "") + " " + sp.getString("pf_last", "")).trim()
+            summary = name.ifEmpty { sp.getString("pf_email", "") }
+            setOnPreferenceClickListener {
+                startActivity(Intent(requireContext(), ProfileActivity::class.java))
+                true
             }
         }
-        findPreference<EditTextPreference>("cf_account")?.summaryProvider =
-            Preference.SummaryProvider<EditTextPreference> { p -> p.text ?: "" }
-
         findPreference<Preference>("policy")?.setOnPreferenceClickListener {
             startActivity(Intent(requireContext(), InfoActivity::class.java).putExtra("page", "policy"))
             true

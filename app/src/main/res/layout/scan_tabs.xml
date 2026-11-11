@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.tabs.TabLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/scanTabs" android:layout_width="match_parent" android:layout_height="44dp" android:background="?attr/colBg"
+    app:tabIndicatorColor="?attr/colAccent" app:tabSelectedTextColor="?attr/colFg" app:tabTextColor="?attr/colMuted" />

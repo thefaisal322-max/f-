@@ -6,7 +6,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.ContentValues
+import java.io.File
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
@@ -19,7 +19,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FallbackStrategy
-import androidx.camera.video.MediaStoreOutputOptions
+import androidx.camera.video.FileOutputOptions
 import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recorder
@@ -199,26 +199,24 @@ class BvrService : LifecycleService() {
                 provider.unbindAll()
                 provider.bindToLifecycle(this, camera, capture)
 
-                val name = "FaisalAI_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-                val values = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-                    put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
-                    if (Build.VERSION.SDK_INT >= 29) put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/FaisalAI")
-                }
-                val output = MediaStoreOutputOptions
-                    .Builder(contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
-                    .setContentValues(values)
-                    .build()
+                val name = "FaisalAI_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date()) + ".mp4"
+                // Record to a temporary file; the finished video is moved to Download/Faisal/BVR.
+                val temp = File(cacheDir, name)
+                val output = FileOutputOptions.Builder(temp).build()
                 recording = recorder.prepareRecording(this, output)
                     .withAudioEnabled()
                     .start(ContextCompat.getMainExecutor(this)) { event ->
                         if (event is VideoRecordEvent.Finalize) {
-                            // If the system cut the recording (not the user), save it and start the next part.
-                            if (!userStop && event.hasError() && restarts < 20) {
-                                restarts++
-                                recording = null
-                                startRecording()
-                            } else shutDown()
+                            val cut = !userStop && event.hasError() && restarts < 20
+                            recording = null
+                            Net.pool.execute {
+                                if (temp.exists() && temp.length() > 0) Public.save(this, "BVR", name, temp, "video/mp4")
+                                temp.delete()
+                                Net.main.post {
+                                    // If the system cut the recording (not the user), start the next part.
+                                    if (cut) { restarts++; startRecording() } else shutDown()
+                                }
+                            }
                         }
                     }
             } catch (e: Exception) {

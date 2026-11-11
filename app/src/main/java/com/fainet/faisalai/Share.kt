@@ -211,9 +211,9 @@ class ShareActivity : BaseActivity() {
         stopServer()
         val s = ShareServer(applicationContext, deviceName,
             onHello = { p -> Net.main.post { if (!isDestroyed && server != null) connected(p) } },
-            onReceived = { f -> Net.main.post {
+            onReceived = { fname -> Net.main.post {
                 if (!isDestroyed) {
-                    toast(getString(R.string.sh_got, f.name))
+                    toast(if (fname.isEmpty()) getString(R.string.save_failed) else getString(R.string.sh_got, fname))
                     if (tab == 5) loadTab()
                 }
             } })
@@ -458,18 +458,14 @@ class ShareActivity : BaseActivity() {
     }
 
     private fun received(): List<Item> =
-        (Storage.dir(this, "Received").listFiles()?.filter { it.isFile } ?: emptyList()).sortedByDescending { it.lastModified() }
-            .map { Item("r:" + it.path, it.name, Uri.fromFile(it), it.length()) }
+        Public.list(this, "Share").map { Item("r:" + it.uri, it.name, it.uri, it.size) }
 
     private fun open(item: Item) {
         try {
-            val f = File(item.uri.path ?: return)
-            val uri = Storage.uri(this, f)
-            val type = android.webkit.MimeTypeMap.getSingleton()
-                .getMimeTypeFromExtension(f.extension.lowercase()) ?: "*/*"
-            startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri, type).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
+            val uri = if (item.uri.scheme == "file") Storage.uri(this, File(item.uri.path ?: return)) else item.uri
+            startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri, Public.mime(item.name)).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
         } catch (e: Exception) {
-            toast(getString(R.string.unsupported_file))
+            toast(getString(R.string.no_app))
         }
     }
 

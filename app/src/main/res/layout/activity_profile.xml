@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:background="?attr/colBg" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+        <include layout="@layout/bar" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+            <EditText android:id="@+id/first" android:layout_width="match_parent" android:layout_height="52dp" android:background="@drawable/bg_field"
+                android:paddingStart="16dp" android:paddingEnd="16dp" android:hint="@string/pf_first" android:inputType="textPersonName|textCapWords"
+                android:textColor="?attr/colFg" android:textColorHint="?attr/colMuted" android:importantForAutofill="no" />
+            <EditText android:id="@+id/last" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="12dp" android:background="@drawable/bg_field"
+                android:paddingStart="16dp" android:paddingEnd="16dp" android:hint="@string/pf_last" android:inputType="textPersonName|textCapWords"
+                android:textColor="?attr/colFg" android:textColorHint="?attr/colMuted" android:importantForAutofill="no" />
+            <EditText android:id="@+id/email" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="12dp" android:background="@drawable/bg_field"
+                android:paddingStart="16dp" android:paddingEnd="16dp" android:hint="@string/pf_email" android:inputType="textEmailAddress"
+                android:textColor="?attr/colFg" android:textColorHint="?attr/colMuted" android:importantForAutofill="no" android:textDirection="ltr" />
+            <Button android:id="@+id/save" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="@string/pf_save" />
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="24dp" android:background="?attr/colLine" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="20dp" android:text="@string/pf_pin"
+                android:textColor="?attr/colFg" android:textSize="18sp" android:textStyle="bold" />
+            <TextView android:id="@+id/pinState" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp"
+                android:textColor="?attr/colMuted" android:textSize="14sp" />
+            <Button android:id="@+id/pinSet" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" />
+            <Button android:id="@+id/pinRemove" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/pf_pin_remove" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

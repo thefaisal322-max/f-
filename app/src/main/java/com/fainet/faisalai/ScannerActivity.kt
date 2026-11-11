@@ -58,6 +58,7 @@ class ScannerActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_scanner)
         bar(R.string.t_scan)
+        scanTabs(0)
         preview = findViewById(R.id.preview)
         count = findViewById(R.id.count)
         status = findViewById(R.id.status)
@@ -145,7 +146,7 @@ class ScannerActivity : BaseActivity() {
         val originals = ArrayList(pages)
         val chosen = mode
         val name = "Scan_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val dir = Storage.dir(this, "Scans")
+        val dir = File(cacheDir, "scan_out").apply { mkdirs() }
         Net.pool.execute {
             var saved: String? = null
             var cleaned: List<Bitmap> = emptyList()
@@ -186,8 +187,24 @@ class ScannerActivity : BaseActivity() {
     }
 
     private fun showSaved(saved: String?) {
-        busy = false
-        status.text = if (saved != null) getString(R.string.saved_as, saved) else getString(R.string.save_failed)
+        if (saved == null) {
+            busy = false
+            status.text = getString(R.string.save_failed)
+            return
+        }
+        // Move the finished files into Download/Faisal/Scans.
+        Net.pool.execute {
+            val dir = File(cacheDir, "scan_out")
+            var ok = true
+            dir.listFiles()?.forEach { f ->
+                if (Public.save(this, "Scans", f.name, f) == null) ok = false
+                f.delete()
+            }
+            Net.main.post {
+                busy = false
+                status.text = if (ok) getString(R.string.saved_as, "Download/Faisal/Scans/$saved") else getString(R.string.save_failed)
+            }
+        }
     }
 
     // ---------- PDF ----------

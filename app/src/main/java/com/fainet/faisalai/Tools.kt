@@ -74,7 +74,7 @@ class MakerActivity : BaseActivity() {
         }
         findViewById<Button>(R.id.btnSave).setOnClickListener {
             val f = save()
-            if (f != null) toast(getString(R.string.saved_as, f.name))
+            if (f != null) toast(getString(R.string.saved_as, "Download/Faisal/Codes/" + f.name))
         }
         findViewById<Button>(R.id.btnShare).setOnClickListener {
             val f = save() ?: return@setOnClickListener
@@ -95,8 +95,9 @@ class MakerActivity : BaseActivity() {
         }
         return try {
             val name = "Code_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date()) + ".png"
-            val f = File(Storage.dir(this, "Codes"), name)
+            val f = File(cacheDir, name)
             FileOutputStream(f).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            if (Public.save(this, "Codes", name, f) == null) throw java.io.IOException("not saved")
             f
         } catch (e: Exception) {
             toast(getString(R.string.save_failed))

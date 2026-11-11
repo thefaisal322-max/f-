@@ -24,6 +24,8 @@
             android:background="@drawable/bg_field" android:paddingStart="16dp" android:paddingEnd="16dp"
             android:hint="@string/live_ask_hint" android:textColor="?attr/colFg" android:textColorHint="?attr/colMuted" android:textSize="16sp"
             android:inputType="text|textCapSentences" android:imeOptions="actionSend" android:maxLines="1" android:importantForAutofill="no" />
+        <ImageButton android:id="@+id/askSend" android:layout_width="52dp" android:layout_height="52dp" android:layout_marginStart="8dp"
+            android:background="@drawable/bg_send" android:src="@drawable/ic_up" android:contentDescription="@string/send" />
         <ImageButton android:id="@+id/mic" android:layout_width="60dp" android:layout_height="60dp" android:layout_marginStart="12dp"
             android:background="@drawable/bg_user" android:src="@drawable/ic_mic" app:tint="?attr/colOnAccent"
             android:contentDescription="@string/mic" />

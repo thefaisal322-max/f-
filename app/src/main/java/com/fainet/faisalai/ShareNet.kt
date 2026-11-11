@@ -48,7 +48,7 @@ class ShareServer(
     private val ctx: Context,
     private val deviceName: String,
     private val onHello: (Peer) -> Unit,
-    private val onReceived: (File) -> Unit
+    private val onReceived: (String) -> Unit
 ) {
     companion object {
         const val PORT = 8080
@@ -156,7 +156,7 @@ class ShareServer(
                 val total = arg(query, "total")?.toLongOrNull() ?: length
                 val inc = synchronized(incoming) {
                     incoming.getOrPut(id) {
-                        val dest = unique(File(Storage.dir(ctx, "Received"), name))
+                        val dest = unique(File(Storage.dir(ctx, "Incoming"), name))
                         RandomAccessFile(dest, "rw").use { it.setLength(total) }
                         Incoming(dest, total)
                     }
@@ -176,7 +176,10 @@ class ShareServer(
                 respond(out, "200 OK", "ok")
                 if (inc.got.addAndGet(length) >= inc.total) {
                     incoming.remove(id)
-                    onReceived(inc.dest)
+                    // The finished file goes to Download/Faisal/Share.
+                    val saved = Public.save(ctx, "Share", inc.dest.name, inc.dest)
+                    inc.dest.delete()
+                    onReceived(if (saved != null) inc.dest.name else "")
                 }
             }
             else -> respond(out, "404 Not Found", "Not found")

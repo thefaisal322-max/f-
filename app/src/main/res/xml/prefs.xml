@@ -1,25 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory app:title="@string/s_profile" app:iconSpaceReserved="false">
+        <Preference app:key="profile" app:title="@string/pf_title" app:iconSpaceReserved="false" />
+    </PreferenceCategory>
     <PreferenceCategory app:title="@string/s_look" app:iconSpaceReserved="false">
         <ListPreference app:key="theme" app:title="@string/s_theme" app:entries="@array/theme_entries" app:entryValues="@array/theme_values" app:defaultValue="classic" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
         <ListPreference app:key="lang" app:title="@string/s_lang" app:entries="@array/lang_entries" app:entryValues="@array/lang_values" app:defaultValue="en" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
     </PreferenceCategory>
-    <PreferenceCategory app:title="@string/s_ai" app:iconSpaceReserved="false">
-        <ListPreference app:key="provider" app:title="@string/s_provider" app:entries="@array/provider_entries" app:entryValues="@array/provider_values" app:defaultValue="auto" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
-        <EditTextPreference app:key="cf_account" app:title="@string/k_cf_account" app:iconSpaceReserved="false" />
-        <EditTextPreference app:key="cf_token" app:title="@string/k_cf_token" app:iconSpaceReserved="false" />
-        <EditTextPreference app:key="cf_model" app:title="@string/k_cf_model" app:defaultValue="@cf/mistralai/mistral-small-3.1-24b-instruct" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
-        <EditTextPreference app:key="gemini_key" app:title="@string/k_gemini" app:iconSpaceReserved="false" />
-        <EditTextPreference app:key="model" app:title="@string/k_gemini_model" app:defaultValue="gemini-flash-latest" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
+    <PreferenceCategory app:title="@string/s_answers" app:iconSpaceReserved="false">
         <ListPreference app:key="len" app:title="@string/s_len" app:entries="@array/len_entries" app:entryValues="@array/len_values" app:defaultValue="medium" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
         <ListPreference app:key="reply_lang" app:title="@string/s_reply" app:entries="@array/reply_entries" app:entryValues="@array/reply_values" app:defaultValue="app" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
     </PreferenceCategory>
     <PreferenceCategory app:title="@string/s_voice" app:iconSpaceReserved="false">
         <SwitchPreferenceCompat app:key="speak" app:title="@string/s_speak" app:summary="@string/s_speak_sum" app:defaultValue="false" app:iconSpaceReserved="false" />
-        <EditTextPreference app:key="tts_model" app:title="@string/k_tts_model" app:defaultValue="gemini-3.8-flash-tts" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
-    </PreferenceCategory>
-    <PreferenceCategory app:title="@string/s_tools" app:iconSpaceReserved="false">
-        <EditTextPreference app:key="rates_url" app:title="@string/k_rates_url" app:defaultValue="https://open.er-api.com/v6/latest/USD" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
     </PreferenceCategory>
     <PreferenceCategory app:title="@string/s_bvr" app:iconSpaceReserved="false">
         <ListPreference app:key="bvr_cam" app:title="@string/s_cam" app:entries="@array/cam_entries" app:entryValues="@array/cam_values" app:defaultValue="back" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />

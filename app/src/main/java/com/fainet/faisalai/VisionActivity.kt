@@ -51,6 +51,7 @@ class VisionActivity : BaseActivity() {
         setContentView(R.layout.activity_vision)
         ocr = intent.getStringExtra("mode") == "ocr"
         bar(if (ocr) R.string.t_ocr else R.string.t_lens)
+        scanTabs(if (ocr) 1 else 2)
 
         preview = findViewById(R.id.preview)
         out = findViewById(R.id.out)

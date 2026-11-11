@@ -86,9 +86,70 @@ class MapActivity : BaseActivity() {
             override fun singleTapConfirmedHelper(p: GeoPoint): Boolean { results.visibility = View.GONE; return false }
             override fun longPressHelper(p: GeoPoint): Boolean { dropPin(p, ""); reverse(p); return true }
         }))
+        findViewById<Button>(R.id.btnShareLoc).setOnClickListener { shareLocation() }
         findViewById<Button>(R.id.btnSave).setOnClickListener { savePlace() }
         findViewById<Button>(R.id.btnSaved).setOnClickListener { showSaved() }
         findViewById<Button>(R.id.btnDirections).setOnClickListener { route() }
+    }
+
+    // ---------- sharing a location ----------
+
+    private val notifPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { copyLocationLink() }
+
+    /** Asks first, then copies a link to where you are and shows a notification about it. */
+    private fun shareLocation() {
+        if (me?.myLocation == null) {
+            toast(getString(R.string.map_need_me))
+            if (hasLocation()) showMe()
+            else locationPermission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+            return
+        }
+        AlertDialog.Builder(this)
+            .setMessage(R.string.map_copy_q)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.map_copy) { _, _ ->
+                if (android.os.Build.VERSION.SDK_INT >= 33 &&
+                    ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                ) notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                else copyLocationLink()
+            }.show()
+    }
+
+    private fun copyLocationLink() {
+        val p = me?.myLocation ?: return
+        val link = "https://www.openstreetmap.org/?mlat=%.6f&mlon=%.6f#map=17/%.6f/%.6f".format(java.util.Locale.US, p.latitude, p.longitude, p.latitude, p.longitude)
+        copy(link)
+        try {
+            val nm = getSystemService(android.app.NotificationManager::class.java)
+            nm.createNotificationChannel(android.app.NotificationChannel("loc", getString(R.string.map_share), android.app.NotificationManager.IMPORTANCE_DEFAULT))
+            val n = androidx.core.app.NotificationCompat.Builder(this, "loc")
+                .setSmallIcon(R.drawable.ic_bvr_notif)
+                .setContentTitle(getString(R.string.map_notif_title))
+                .setContentText(getString(R.string.map_notif_text))
+                .setStyle(androidx.core.app.NotificationCompat.BigTextStyle().bigText(getString(R.string.map_notif_text)))
+                .setAutoCancel(true)
+                .build()
+            nm.notify(21, n)
+        } catch (e: Exception) { }
+    }
+
+    /** Reads a location out of a pasted link or "lat, lon". */
+    private fun parseLocation(text: String): GeoPoint? {
+        val t = text.trim()
+        val patterns = listOf(
+            Regex("mlat=(-?\\d+(?:\\.\\d+)?)&mlon=(-?\\d+(?:\\.\\d+)?)"),
+            Regex("geo:(-?\\d+(?:\\.\\d+)?),(-?\\d+(?:\\.\\d+)?)"),
+            Regex("@(-?\\d+(?:\\.\\d+)?),(-?\\d+(?:\\.\\d+)?)"),
+            Regex("[?&](?:q|ll|query)=(-?\\d+(?:\\.\\d+)?),(-?\\d+(?:\\.\\d+)?)"),
+            Regex("^(-?\\d+(?:\\.\\d+)?)\\s*[,;]\\s*(-?\\d+(?:\\.\\d+)?)$")
+        )
+        for (r in patterns) {
+            val m = r.find(t) ?: continue
+            val lat = m.groupValues[1].toDoubleOrNull() ?: continue
+            val lon = m.groupValues[2].toDoubleOrNull() ?: continue
+            if (lat in -90.0..90.0 && lon in -180.0..180.0) return GeoPoint(lat, lon)
+        }
+        return null
     }
 
     // ---------- pin, saved places ----------
@@ -245,6 +306,15 @@ class MapActivity : BaseActivity() {
     /** Finds places by name with OpenStreetMap's Nominatim search and lists the matches. */
     private fun search(text: String) {
         if (text.isEmpty()) return
+        parseLocation(text)?.let { p ->
+            // A friend's location link: show where they are.
+            results.visibility = View.GONE
+            dropPin(p, getString(R.string.map_found_link))
+            map.controller.setZoom(17.0)
+            map.controller.animateTo(p)
+            reverse(p)
+            return
+        }
         val language = resources.configuration.locales[0].language
         Net.pool.execute {
             val found = ArrayList<Triple<String, Double, Double>>()
