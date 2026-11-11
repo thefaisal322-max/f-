@@ -23,6 +23,9 @@
     <PreferenceCategory app:title="@string/s_search" app:iconSpaceReserved="false">
         <EditTextPreference app:key="tavily_key" app:title="@string/k_tavily" app:iconSpaceReserved="false" />
     </PreferenceCategory>
+    <PreferenceCategory app:title="@string/s_tools" app:iconSpaceReserved="false">
+        <EditTextPreference app:key="rates_url" app:title="@string/k_rates_url" app:defaultValue="https://open.er-api.com/v6/latest/USD" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
+    </PreferenceCategory>
     <PreferenceCategory app:title="@string/s_bvr" app:iconSpaceReserved="false">
         <ListPreference app:key="bvr_cam" app:title="@string/s_cam" app:entries="@array/cam_entries" app:entryValues="@array/cam_values" app:defaultValue="back" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
         <ListPreference app:key="bvr_quality" app:title="@string/s_quality" app:entries="@array/quality_entries" app:entryValues="@array/quality_values" app:defaultValue="HD" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />

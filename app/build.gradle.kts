@@ -11,8 +11,19 @@ android {
         applicationId = "com.fainet.faisalai"
         minSdk = 26
         targetSdk = 34
-        versionCode = 3
-        versionName = "2.1-F+"
+        versionCode = 4
+        versionName = "2.2-F+"
+    }
+    // One fixed key for every build, so a new APK installs over the old one.
+    // This key is public (it is in the repository): fine for testing, not for Google Play.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.p12")
+            storeType = "pkcs12"
+            storePassword = "android"
+            keyAlias = "faisal"
+            keyPassword = "android"
+        }
     }
     buildTypes {
         release {

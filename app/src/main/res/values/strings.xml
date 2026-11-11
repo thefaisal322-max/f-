@@ -149,4 +149,52 @@
     <string name="s_speak">Read answers aloud in AI Chat</string>
     <string name="s_speak_sum">Live always speaks its answers.</string>
     <string name="k_tts_model" translatable="false">Gemini voice model</string>
+    <string name="t_scan">Scanner</string>
+    <string name="t_maker">Code Maker</string>
+    <string name="t_convert">Converter</string>
+    <string name="t_weather">Weather</string>
+    <string name="scan_hint">Photograph a paper. Faisal makes it clear and saves it as PDF, Word, PNG or JPG.</string>
+    <string name="scan_pages">Pages: %1$d</string>
+    <string name="scan_none">Add a page first.</string>
+    <string name="scan_save">Save as</string>
+    <string name="rotate">Rotate</string>
+    <string name="clear_pages">Remove all</string>
+    <string name="m_color">Clear color</string>
+    <string name="m_gray">Clear gray</string>
+    <string name="m_bw">Black &amp; white</string>
+    <string name="m_orig">Original</string>
+    <string name="working">Working…</string>
+    <string name="reading_page">Reading the text of page %1$d…</string>
+    <string name="saved_as">Saved in Files: %1$s</string>
+    <string name="save_failed">The file could not be saved.</string>
+    <string name="maker_hint">Text, link or number</string>
+    <string name="make">Make code</string>
+    <string name="code_bad">This text does not fit that code type. Number codes like EAN and UPC need digits only.</string>
+    <string name="conv_amount">Amount</string>
+    <string name="conv_update">Update rates</string>
+    <string name="conv_updated">Rates from: %1$s</string>
+    <string name="conv_none">No rates yet. Connect to the internet and tap Update rates.</string>
+    <string name="w_city_hint">City name</string>
+    <string name="w_feels">Feels like %1$s°C</string>
+    <string name="w_humidity">Humidity %1$s%%</string>
+    <string name="w_wind">Wind %1$s km/h</string>
+    <string name="w_google">Google weather</string>
+    <string name="w_clear">Clear sky</string>
+    <string name="w_partly">Partly cloudy</string>
+    <string name="w_cloudy">Cloudy</string>
+    <string name="w_fog">Fog</string>
+    <string name="w_drizzle">Drizzle</string>
+    <string name="w_rain">Rain</string>
+    <string name="w_snow">Snow</string>
+    <string name="w_showers">Showers</string>
+    <string name="w_thunder">Thunderstorm</string>
+    <string name="share_speed">Speed: %1$s/s</string>
+    <string name="s_tools">Tools</string>
+    <string name="f_pdf" translatable="false">PDF</string>
+    <string name="f_docx" translatable="false">Word (DOCX)</string>
+    <string name="f_png" translatable="false">PNG</string>
+    <string name="f_jpg" translatable="false">JPG</string>
+    <string name="conv_by" translatable="false">Rates By Exchange Rate API: https://www.exchangerate-api.com</string>
+    <string name="w_by" translatable="false">Weather data by Open-Meteo.com: https://open-meteo.com</string>
+    <string name="k_rates_url" translatable="false">Exchange rates URL</string>
 </resources>

@@ -43,6 +43,10 @@ class MainActivity : BaseActivity() {
             Tile(R.string.t_nav, R.drawable.ic_nav, "main web") { go(MapActivity::class.java) },
             Tile(R.string.t_tr, R.drawable.ic_translate, "main web") { go(TranslateActivity::class.java) },
             Tile(R.string.t_share, R.drawable.ic_share, "main web") { go(ShareActivity::class.java) },
+            Tile(R.string.t_scan, R.drawable.ic_scan, "main vision") { go(ScannerActivity::class.java) },
+            Tile(R.string.t_maker, R.drawable.ic_qr, "main") { go(MakerActivity::class.java) },
+            Tile(R.string.t_convert, R.drawable.ic_money, "main") { go(ConverterActivity::class.java) },
+            Tile(R.string.t_weather, R.drawable.ic_weather, "main web") { go(WeatherActivity::class.java) },
             Tile(R.string.t_files, R.drawable.ic_file, "main") { go(FilesActivity::class.java) },
             Tile(R.string.t_settings, R.drawable.ic_gear, "main") { go(SettingsActivity::class.java) },
         )

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="?attr/colBg">
+    <include layout="@layout/bar" />
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="16dp">
+            <EditText android:id="@+id/city" android:layout_width="match_parent" android:layout_height="48dp" android:background="@drawable/bg_field" android:paddingStart="14dp" android:paddingEnd="14dp" android:textColor="?attr/colFg" android:textSize="16sp" android:importantForAutofill="no"
+                android:drawableStart="@drawable/ic_search" android:drawablePadding="10dp"
+                android:hint="@string/w_city_hint" android:inputType="text" android:imeOptions="actionSearch" android:maxLines="1" />
+            <TextView android:id="@+id/place" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp"
+                android:textColor="?attr/colMuted" android:textSize="15sp" />
+            <TextView android:id="@+id/temp" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="?attr/colFg" android:textSize="56sp" android:textStyle="bold" android:textDirection="ltr" />
+            <TextView android:id="@+id/condition" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="?attr/colFg" android:textSize="18sp" />
+            <TextView android:id="@+id/details" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp"
+                android:textColor="?attr/colMuted" android:textSize="14sp" android:lineSpacingMultiplier="1.3" />
+            <TextView android:id="@+id/days" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp"
+                android:padding="12dp" android:background="@drawable/bg_bot" android:textColor="?attr/colFg" android:textSize="15sp" android:lineSpacingMultiplier="1.5" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:orientation="horizontal">
+                <Button android:id="@+id/btnLocate" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/my_location" />
+                <Button android:id="@+id/btnGoogle" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="8dp" android:text="@string/w_google" />
+            </LinearLayout>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp"
+                android:text="@string/w_by" android:textColor="?attr/colMuted" android:textColorLink="?attr/colAccent" android:textSize="12sp" android:autoLink="web" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

@@ -29,7 +29,9 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.DecodeHintType
+import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatReader
+import com.google.zxing.MultiFormatWriter
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.GlobalHistogramBinarizer
 import com.google.zxing.common.HybridBinarizer
@@ -98,6 +100,7 @@ object Prefs {
     fun geminiKey(c: Context): String = str(c, "gemini_key").ifEmpty { str(c, "api_key") }
     fun geminiModel(c: Context): String = str(c, "model").ifEmpty { "gemini-flash-latest" }
     fun tavilyKey(c: Context): String = str(c, "tavily_key")
+    fun ratesUrl(c: Context): String = str(c, "rates_url").ifEmpty { "https://open.er-api.com/v6/latest/USD" }
     fun ttsModel(c: Context): String = str(c, "tts_model").ifEmpty { "gemini-3.8-flash-tts" }
     fun speak(c: Context): Boolean = sp(c).getBoolean("speak", false)
 
@@ -459,6 +462,25 @@ object Codes {
         return null
     }
 
+    /**
+     * Draws any code type. Throws when the text does not fit the type
+     * (for example letters in an EAN-13 code).
+     */
+    fun make(text: String, format: BarcodeFormat, width: Int, height: Int): Bitmap {
+        val hints = mapOf<EncodeHintType, Any>(EncodeHintType.CHARACTER_SET to "UTF-8", EncodeHintType.MARGIN to 2)
+        val matrix = MultiFormatWriter().encode(text, format, width, height, hints)
+        val w = matrix.width
+        val h = matrix.height
+        val px = IntArray(w * h)
+        for (y in 0 until h) {
+            for (x in 0 until w) px[y * w + x] = if (matrix.get(x, y)) Color.BLACK else Color.WHITE
+        }
+        val small = Bitmap.createBitmap(px, w, h, Bitmap.Config.ARGB_8888)
+        // Some types come out only a few pixels wide; enlarge them without blurring.
+        val factor = maxOf(1, 600 / maxOf(w, 1))
+        return if (factor > 1) Bitmap.createScaledBitmap(small, w * factor, h * factor, false) else small
+    }
+
     fun qr(text: String, size: Int): Bitmap {
         val matrix = QRCodeWriter().encode(text, BarcodeFormat.QR_CODE, size, size)
         val px = IntArray(size * size)
@@ -486,12 +508,12 @@ object Storage {
     }
 
     fun all(c: Context): List<File> =
-        listOf("Notes", "Received")
+        listOf("Notes", "Received", "Scans", "Codes")
             .flatMap { dir(c, it).listFiles()?.filter { f -> f.isFile } ?: emptyList() }
             .sortedByDescending { it.lastModified() }
 
     fun eraseAll(c: Context) {
-        listOf("Notes", "Received").forEach { d -> dir(c, d).listFiles()?.forEach { it.delete() } }
+        listOf("Notes", "Received", "Scans", "Codes").forEach { d -> dir(c, d).listFiles()?.forEach { it.delete() } }
         chatsDir(c).listFiles()?.forEach { it.delete() }
         File(c.filesDir, "chat.json").delete()
     }

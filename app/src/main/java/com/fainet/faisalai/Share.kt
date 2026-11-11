@@ -3,8 +3,11 @@ package com.fainet.faisalai
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.net.wifi.WifiManager
+import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.text.format.Formatter
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
@@ -12,30 +15,37 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import java.io.BufferedInputStream
-import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.Inet4Address
+import java.net.InetSocketAddress
 import java.net.NetworkInterface
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Collections
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 
 /**
  * Phone-to-phone file sharing over the local network, without internet.
- * This phone runs a small web server; the other phone opens its address in
- * any browser to download the chosen files or to send files back.
+ * This phone runs a small web server; the other phone scans the QR code (or opens the
+ * address in any browser) to download the chosen files or to send files back.
+ *
+ * Speed: the app keeps Wi-Fi in its high-performance mode, moves data in 1 MB pieces
+ * with large network buffers, and several files can move at once. The limit is then
+ * the Wi-Fi link itself; a 5 GHz hotspot or router is several times faster than 2.4 GHz.
  */
 class ShareActivity : BaseActivity() {
 
     private val files = ArrayList<Uri>()
     private var server: ShareServer? = null
+    private var wifiLock: WifiManager.WifiLock? = null
+    private var lastBytes = 0L
 
     private lateinit var chosen: TextView
     private lateinit var start: Button
@@ -44,13 +54,34 @@ class ShareActivity : BaseActivity() {
     private lateinit var received: TextView
     private lateinit var qr: ImageView
     private lateinit var qrHint: TextView
+    private lateinit var speed: TextView
 
     private val picker = registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         if (uris.isNotEmpty()) {
             files.clear()
             files.addAll(uris)
             chosen.text = getString(R.string.share_count, files.size)
-            if (server != null) restart()
+            if (server != null) {
+                end()
+                begin()
+            }
+        }
+    }
+
+    /** Once a second while sharing: how many bytes moved since the last look. */
+    private val meter = object : Runnable {
+        override fun run() {
+            val s = server ?: return
+            val total = s.bytes.get()
+            val moved = total - lastBytes
+            lastBytes = total
+            if (moved > 0) {
+                speed.text = getString(R.string.share_speed, Formatter.formatShortFileSize(this@ShareActivity, moved))
+                speed.visibility = View.VISIBLE
+            } else {
+                speed.visibility = View.GONE
+            }
+            Net.main.postDelayed(this, 1000)
         }
     }
 
@@ -65,6 +96,7 @@ class ShareActivity : BaseActivity() {
         received = findViewById(R.id.received)
         qr = findViewById(R.id.qr)
         qrHint = findViewById(R.id.qrHint)
+        speed = findViewById(R.id.speed)
 
         findViewById<Button>(R.id.pick).setOnClickListener { picker.launch(arrayOf("*/*")) }
         start.setOnClickListener { if (server == null) begin() else end() }
@@ -108,26 +140,42 @@ class ShareActivity : BaseActivity() {
         }
         start.setText(R.string.share_stop)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        // Stop Wi-Fi from saving power during the transfer; power saving slows it down a lot.
+        try {
+            val wifi = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            @Suppress("DEPRECATION")
+            val lockMode = if (Build.VERSION.SDK_INT >= 29) WifiManager.WIFI_MODE_FULL_LOW_LATENCY
+            else WifiManager.WIFI_MODE_FULL_HIGH_PERF
+            wifiLock = wifi.createWifiLock(lockMode, "FaisalAI:share").apply { acquire() }
+        } catch (e: Exception) {
+            wifiLock = null // sharing still works, only without the speed-up
+        }
+        lastBytes = 0L
+        Net.main.postDelayed(meter, 1000)
     }
 
     private fun end() {
+        Net.main.removeCallbacks(meter)
         server?.stop()
         server = null
+        try {
+            if (wifiLock?.isHeld == true) wifiLock?.release()
+        } catch (e: Exception) {
+            // Already released.
+        }
+        wifiLock = null
         info.visibility = View.GONE
         address.visibility = View.GONE
         qr.visibility = View.GONE
         qrHint.visibility = View.GONE
+        speed.visibility = View.GONE
         start.setText(R.string.share_start)
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
-    private fun restart() {
-        end()
-        begin()
-    }
-
     override fun onDestroy() {
-        server?.stop()
+        if (server != null) end()
         super.onDestroy()
     }
 }
@@ -140,7 +188,8 @@ class ShareServer(
 ) {
     companion object {
         const val PORT = 8080
-        const val BUFFER = 256 * 1024 // large buffers keep transfers fast on good Wi-Fi
+        const val CHUNK = 1024 * 1024 // data moves in 1 MB pieces
+        const val SOCKET_BUFFER = 4 * 1024 * 1024 // large network buffers keep a fast link busy
 
         /** This phone's address on Wi-Fi or on its own hotspot, or null when there is no local network. */
         fun localIp(): String? {
@@ -158,11 +207,18 @@ class ShareServer(
         }
     }
 
+    /** All file bytes sent and received so far; the screen turns this into a speed. */
+    val bytes = AtomicLong()
+
     private var socket: ServerSocket? = null
 
     fun start(): Boolean {
         val s = try {
-            ServerSocket(PORT)
+            ServerSocket().apply {
+                reuseAddress = true
+                receiveBufferSize = SOCKET_BUFFER // must be set before the first connection
+                bind(InetSocketAddress(PORT), 50)
+            }
         } catch (e: Exception) {
             return false
         }
@@ -174,6 +230,7 @@ class ShareServer(
                 } catch (e: Exception) {
                     break // the server was stopped
                 }
+                // One thread per connection, so several files move at the same time.
                 thread(isDaemon = true) {
                     try {
                         handle(client)
@@ -206,10 +263,9 @@ class ShareServer(
     private fun handle(client: Socket) {
         client.soTimeout = 30000
         client.tcpNoDelay = true
-        client.sendBufferSize = BUFFER * 4
-        client.receiveBufferSize = BUFFER * 4
-        val ins = BufferedInputStream(client.getInputStream(), BUFFER)
-        val out = BufferedOutputStream(client.getOutputStream(), BUFFER)
+        client.sendBufferSize = SOCKET_BUFFER
+        val ins = BufferedInputStream(client.getInputStream(), CHUNK)
+        val out = client.getOutputStream() // written in 1 MB pieces, so no extra buffering
         val request = readLine(ins).split(" ")
         if (request.size < 2) return
         var length = 0L
@@ -240,12 +296,13 @@ class ShareServer(
                     .replace(Regex("[\\\\/:*?\"<>|]"), "_").ifEmpty { "file" }
                 val dest = unique(File(Storage.dir(ctx, "Received"), name))
                 FileOutputStream(dest).use { fo ->
-                    val buf = ByteArray(BUFFER)
+                    val buf = ByteArray(CHUNK)
                     var left = length
                     while (left > 0) {
                         val n = ins.read(buf, 0, minOf(buf.size.toLong(), left).toInt())
                         if (n <= 0) break
                         fo.write(buf, 0, n)
+                        bytes.addAndGet(n.toLong())
                         left -= n
                     }
                 }
@@ -309,7 +366,15 @@ class ShareServer(
         if (size >= 0) head.append("Content-Length: ").append(size).append("\r\n")
         head.append("Connection: close\r\n\r\n")
         out.write(head.toString().toByteArray())
-        input.use { it.copyTo(out, BUFFER) }
+        input.use { source ->
+            val buf = ByteArray(CHUNK)
+            while (true) {
+                val n = source.read(buf)
+                if (n < 0) break
+                out.write(buf, 0, n)
+                bytes.addAndGet(n.toLong())
+            }
+        }
     }
 
     private fun escape(s: String): String =
@@ -319,6 +384,7 @@ class ShareServer(
         val links = StringBuilder()
         files.forEachIndexed { i, uri -> links.append("<a href=\"/f/").append(i).append("\">").append(escape(describe(uri).first)).append("</a>") }
         if (files.isEmpty()) links.append("<p>No files offered.</p>")
+        // Uploads run three at a time: several files together use a fast link better than one after another.
         return """<!doctype html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Faisal AI Share</title>
 <style>body{font-family:sans-serif;background:#111;color:#eee;padding:16px;max-width:520px;margin:auto}
@@ -326,9 +392,13 @@ a{display:block;padding:14px;margin:8px 0;border:1px solid #444;border-radius:12
 input,button{font-size:16px;margin-top:8px;max-width:100%}button{padding:10px 18px}</style></head><body>
 <h2>Faisal AI Share</h2><h3>Download</h3>$links
 <h3>Send to the phone</h3><input type="file" id="f" multiple><br><button onclick="up()">Send</button><p id="s"></p>
-<script>async function up(){var s=document.getElementById('s'),fs=document.getElementById('f').files;
-for(var i=0;i<fs.length;i++){s.textContent='Sending '+fs[i].name+'...';
-try{await fetch('/up?name='+encodeURIComponent(fs[i].name),{method:'PUT',body:fs[i]})}catch(e){s.textContent='Failed: '+fs[i].name;return}}
-s.textContent=fs.length?'Done':'Choose a file first'}</script></body></html>"""
+<script>async function up(){var s=document.getElementById('s'),fs=Array.from(document.getElementById('f').files);
+if(!fs.length){s.textContent='Choose a file first';return}
+var done=0,failed=0,next=0;s.textContent='Sending 0 / '+fs.length+'...';
+async function worker(){while(next<fs.length){var f=fs[next++];
+try{var r=await fetch('/up?name='+encodeURIComponent(f.name),{method:'PUT',body:f});if(!r.ok)failed++}catch(e){failed++}
+done++;s.textContent='Sending '+done+' / '+fs.length+'...'}}
+await Promise.all([worker(),worker(),worker()]);
+s.textContent=failed?('Done, '+failed+' failed'):'Done'}</script></body></html>"""
     }
 }

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="?attr/colBg">
+    <include layout="@layout/bar" />
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="16dp">
+            <Spinner android:id="@+id/type" android:layout_width="match_parent" android:layout_height="48dp" android:background="@drawable/bg_field" />
+            <EditText android:id="@+id/input" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp"
+                android:minHeight="48dp" android:paddingTop="10dp" android:paddingBottom="10dp" android:background="@drawable/bg_field" android:paddingStart="14dp" android:paddingEnd="14dp" android:textColor="?attr/colFg" android:textSize="16sp" android:importantForAutofill="no"
+                android:hint="@string/maker_hint" android:inputType="textMultiLine" android:maxLines="5" />
+            <Button android:id="@+id/make" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/make" />
+            <ImageView android:id="@+id/code" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp"
+                android:adjustViewBounds="true" android:maxHeight="320dp" android:scaleType="fitCenter" android:visibility="gone" android:importantForAccessibility="no" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:orientation="horizontal">
+                <Button android:id="@+id/btnSave" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/save_files" />
+                <Button android:id="@+id/btnShare" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="8dp" android:text="@string/share" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
