@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="theme_entries"><item>@string/th_sys</item><item>@string/th_dark</item><item>@string/th_light</item></string-array>
+    <string-array name="theme_values" translatable="false"><item>system</item><item>dark</item><item>light</item></string-array>
+    <string-array name="lang_entries" translatable="false"><item>English</item><item>پښتو</item><item>دری</item></string-array>
+    <string-array name="lang_values" translatable="false"><item>en</item><item>ps</item><item>fa</item></string-array>
+    <string-array name="len_entries"><item>@string/len_s</item><item>@string/len_m</item><item>@string/len_l</item></string-array>
+    <string-array name="len_values" translatable="false"><item>short</item><item>medium</item><item>long</item></string-array>
+    <string-array name="reply_entries"><item>@string/al_app</item><item>@string/al_user</item></string-array>
+    <string-array name="reply_values" translatable="false"><item>app</item><item>user</item></string-array>
+    <string-array name="cam_entries"><item>@string/cam_back</item><item>@string/cam_front</item></string-array>
+    <string-array name="cam_values" translatable="false"><item>back</item><item>front</item></string-array>
+    <string-array name="quality_entries" translatable="false"><item>SD 480p</item><item>HD 720p</item><item>Full HD 1080p</item></string-array>
+    <string-array name="quality_values" translatable="false"><item>SD</item><item>HD</item><item>FHD</item></string-array>
+    <string-array name="tr_names" translatable="false"><item>پښتو</item><item>دری</item><item>English</item><item>العربية</item><item>اردو</item><item>हिन्दी</item><item>Türkçe</item><item>Русский</item><item>Français</item><item>Deutsch</item><item>中文</item><item>Español</item></string-array>
+    <string-array name="tr_values" translatable="false"><item>Pashto</item><item>Dari</item><item>English</item><item>Arabic</item><item>Urdu</item><item>Hindi</item><item>Turkish</item><item>Russian</item><item>French</item><item>German</item><item>Chinese</item><item>Spanish</item></string-array>
+</resources>
