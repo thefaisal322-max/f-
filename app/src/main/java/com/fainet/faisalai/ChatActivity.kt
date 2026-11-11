@@ -29,6 +29,7 @@ import java.io.File
  */
 class ChatActivity : BaseActivity() {
 
+    private val voice = Voice(this)
     private val turns = ArrayList<AI.Turn>()
     private var chatId = ""
     private var busy = false
@@ -86,6 +87,21 @@ class ChatActivity : BaseActivity() {
         }
 
         findViewById<ImageButton>(R.id.attach).setOnClickListener { picker.launch("*/*") }
+
+        // Microphone: tap, speak, tap again. The words are sent like a typed message.
+        val mic = findViewById<ImageButton>(R.id.mic)
+        mic.setOnClickListener { if (!busy) voice.toggle() }
+        voice.onText = { said -> ask(said) }
+        voice.onState = { state ->
+            mic.setImageResource(if (state == Voice.State.RECORDING) R.drawable.ic_stop else R.drawable.ic_mic)
+            input.setHint(
+                when (state) {
+                    Voice.State.RECORDING -> R.string.listening
+                    Voice.State.WORKING -> R.string.thinking
+                    else -> R.string.chat_hint
+                }
+            )
+        }
         send.setOnClickListener {
             val text = input.text.toString()
             input.setText("")
@@ -104,6 +120,16 @@ class ChatActivity : BaseActivity() {
         val last = Prefs.sp(this).getString("chat_current", null)
         if (question != null || last == null) newChat() else openChat(last)
         if (question != null) ask(question)
+    }
+
+    override fun onPause() {
+        voice.stopSpeaking()
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        voice.release()
+        super.onDestroy()
     }
 
     // ---------- chats ----------
@@ -287,6 +313,7 @@ class ChatActivity : BaseActivity() {
                 reply.text = answer
                 beep()
                 save()
+                if (Prefs.speak(this) && !isDestroyed) voice.speak(answer)
             } else {
                 turns.removeAt(turns.lastIndex) // drop the unanswered question from the history
                 reply.text = error

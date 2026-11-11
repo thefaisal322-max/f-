@@ -15,6 +15,8 @@
             android:orientation="horizontal" android:gravity="bottom" android:padding="10dp">
             <ImageButton android:id="@+id/attach" android:layout_width="48dp" android:layout_height="48dp"
                 android:background="@drawable/bg_round" android:src="@drawable/ic_attach" android:contentDescription="@string/attach" />
+            <ImageButton android:id="@+id/mic" android:layout_width="48dp" android:layout_height="48dp" android:layout_marginStart="6dp"
+                android:background="@drawable/bg_round" android:src="@drawable/ic_mic" android:contentDescription="@string/mic" />
             <EditText android:id="@+id/input" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
                 android:layout_marginStart="8dp" android:minHeight="48dp" android:background="@drawable/bg_field"
                 android:paddingStart="14dp" android:paddingEnd="14dp" android:paddingTop="10dp" android:paddingBottom="10dp"

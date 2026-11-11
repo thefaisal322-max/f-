@@ -126,4 +126,17 @@
     <string name="s_about">درباره</string>
     <string name="about_text">Faisal AI Assistance\nنسخه %1$s\n\nیک برنامه برای گفتگوی AI، جستجوی تصویری، خواندن متن، ترجمه، وب، نقشه، ویدیوی پس‌زمینه و اشتراک فایل.\n\nامروز هوشمند • فردا بهتر • با هم\nPowered by faiNET</string>
     <string name="policy_text">Faisal AI Assistance حساب ندارد و معلومات شما را به faiNET نمی‌فرستد.\n\nAPI keys، گفتگوها، یادداشت‌ها و فایل‌های دریافتی شما فقط در همین تلفن ذخیره می‌شوند. «پاک کردن همه معلومات» در تنظیمات همه را حذف می‌کند.\n\nوقتی از گفتگوی AI، لنز، متن‌خوان، مترجم یا «AI می‌گوید» استفاده می‌کنید، متن و عکس‌های شما برای گرفتن پاسخ به ارائه‌دهنده AI که انتخاب کرده‌اید (Cloudflare، Mistral یا Google Gemini) فرستاده می‌شود. جستجوهای وب به Google یا Tavily فرستاده می‌شوند. نقشه‌ها از OpenStreetMap می‌آیند و جستجوی مکان به خدمت Nominatim آن می‌رود. هر یک از این خدمات سیاست حریم خصوصی خود را دارد.\n\nکمره، مایکروفون و موقعیت فقط وقتی استفاده می‌شوند که بخشی را باز کنید که به آن‌ها نیاز دارد. ویدیوهای BVR در همین تلفن ذخیره می‌شوند و آپلود نمی‌شوند.\n\nاشتراک فایل، فایل‌ها را مستقیم بین تلفن‌های یک Wi‑Fi می‌فرستد. این انتقال رمزگذاری نشده است.</string>
+    <string name="t_live">زنده</string>
+    <string name="mic">صحبت کنید</string>
+    <string name="listening">گوش می‌دهم… برای توقف دوباره بزنید</string>
+    <string name="no_speech">چیزی شنیده نشد. دوباره امتحان کنید.</string>
+    <string name="no_voice">این تلفن برای این زبان صدا ندارد. برای پاسخ صوتی Gemini key را در تنظیمات وارد کنید.</string>
+    <string name="no_recognizer">ورودی صوتی به Gemini key در تنظیمات یا خدمات صوتی Google در این تلفن نیاز دارد.</string>
+    <string name="live_hint">کمره را به چیزی بگیرید، بعد مایکروفون را بزنید و بپرسید.</string>
+    <string name="ask_what">این چیست؟</string>
+    <string name="cam_wait">کمره هنوز آماده نیست.</string>
+    <string name="stop_bvr_first">اول ثبت BVR را متوقف کنید.</string>
+    <string name="s_voice">صدا</string>
+    <string name="s_speak">خواندن پاسخ‌ها با صدا در گفتگوی AI</string>
+    <string name="s_speak_sum">«زنده» همیشه پاسخ‌هایش را با صدا می‌گوید.</string>
 </resources>

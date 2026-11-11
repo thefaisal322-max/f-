@@ -47,6 +47,7 @@
         <activity android:name=".SettingsActivity" />
         <activity android:name=".MapActivity" android:windowSoftInputMode="adjustPan" />
         <activity android:name=".InfoActivity" />
+        <activity android:name=".LiveActivity" />
 
         <service
             android:name=".BvrService"

@@ -126,4 +126,17 @@
     <string name="s_about">د ایپ په اړه</string>
     <string name="about_text">Faisal AI Assistance\nنسخه %1$s\n\nیو ایپ د AI خبرو، انځوریز لټون، متن لوستلو، ژباړې، ویب، نقشې، شالید ویډیو او فایل شریکولو لپاره.\n\nنن هوښیار • سبا ښه • یوځای\nPowered by faiNET</string>
     <string name="policy_text">Faisal AI Assistance حساب نه لري او ستاسو معلومات faiNET ته نه لېږي.\n\nستاسو API keys، خبرې، یادښتونه او ترلاسه شوي فایلونه یوازې په دې تلیفون کې ساتل کېږي. په تنظیماتو کې «ټول معلومات پاکول» دا ټول لرې کوي.\n\nکله چې AI خبرې، لېنز، متن لوستونکی، ژباړن یا «AI وايي» کاروئ، ستاسو متن او عکسونه د ځواب لپاره هغه AI چمتو کوونکي ته لېږل کېږي چې تاسو ټاکلی (Cloudflare، Mistral یا Google Gemini). ویب لټونونه Google یا Tavily ته لېږل کېږي. نقشې له OpenStreetMap څخه راځي او د ځای لټون د هغه Nominatim خدمت ته ځي. دا هر خدمت خپله د محرمیت تګلاره لري.\n\nکامره، مایکروفون او لوکیشن یوازې هغه وخت کارول کېږي چې تاسو اړونده برخه خلاصه کړئ. د BVR ویډیوګانې په دې تلیفون کې ساتل کېږي او نه پورته کېږي.\n\nفایل شریکول فایلونه نېغ په نېغه د یوې Wi‑Fi تلیفونونو ترمنځ لېږي. دا لېږد کوډ شوی (encrypted) نه دی.</string>
+    <string name="t_live">ژوندی</string>
+    <string name="mic">خبرې وکړئ</string>
+    <string name="listening">اورم… د درولو لپاره بیا ټک وکړئ</string>
+    <string name="no_speech">هېڅ ونه اورېدل شول. بیا هڅه وکړئ.</string>
+    <string name="no_voice">دا تلیفون د دې ژبې غږ نه لري. د غږیزو ځوابونو لپاره په تنظیماتو کې Gemini key ولیکئ.</string>
+    <string name="no_recognizer">غږیز ورود په تنظیماتو کې Gemini key، یا په دې تلیفون کې د Google غږ خدمت غواړي.</string>
+    <string name="live_hint">کامره یو شي ته ونیسئ، بیا مایکروفون ووهئ او وپوښتئ.</string>
+    <string name="ask_what">دا څه دي؟</string>
+    <string name="cam_wait">کامره لا چمتو نه ده.</string>
+    <string name="stop_bvr_first">لومړی د BVR ثبت ودروئ.</string>
+    <string name="s_voice">غږ</string>
+    <string name="s_speak">په AI خبرو کې ځوابونه په غږ ولوله</string>
+    <string name="s_speak_sum">«ژوندی» تل خپل ځوابونه په غږ وايي.</string>
 </resources>

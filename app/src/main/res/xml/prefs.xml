@@ -16,6 +16,10 @@
         <ListPreference app:key="len" app:title="@string/s_len" app:entries="@array/len_entries" app:entryValues="@array/len_values" app:defaultValue="medium" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
         <ListPreference app:key="reply_lang" app:title="@string/s_reply" app:entries="@array/reply_entries" app:entryValues="@array/reply_values" app:defaultValue="app" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
     </PreferenceCategory>
+    <PreferenceCategory app:title="@string/s_voice" app:iconSpaceReserved="false">
+        <SwitchPreferenceCompat app:key="speak" app:title="@string/s_speak" app:summary="@string/s_speak_sum" app:defaultValue="false" app:iconSpaceReserved="false" />
+        <EditTextPreference app:key="tts_model" app:title="@string/k_tts_model" app:defaultValue="gemini-3.8-flash-tts" app:useSimpleSummaryProvider="true" app:iconSpaceReserved="false" />
+    </PreferenceCategory>
     <PreferenceCategory app:title="@string/s_search" app:iconSpaceReserved="false">
         <EditTextPreference app:key="tavily_key" app:title="@string/k_tavily" app:iconSpaceReserved="false" />
     </PreferenceCategory>

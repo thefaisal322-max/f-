@@ -98,6 +98,8 @@ object Prefs {
     fun geminiKey(c: Context): String = str(c, "gemini_key").ifEmpty { str(c, "api_key") }
     fun geminiModel(c: Context): String = str(c, "model").ifEmpty { "gemini-flash-latest" }
     fun tavilyKey(c: Context): String = str(c, "tavily_key")
+    fun ttsModel(c: Context): String = str(c, "tts_model").ifEmpty { "gemini-3.8-flash-tts" }
+    fun speak(c: Context): Boolean = sp(c).getBoolean("speak", false)
 
     fun sound(c: Context): Boolean = sp(c).getBoolean("sound", false)
     fun keepHistory(c: Context): Boolean = sp(c).getBoolean("keep_history", true)
@@ -267,6 +269,90 @@ object AI {
         return answer.trim()
     }
 
+    /**
+     * Turns a voice recording (AAC) into text with Gemini. Calls done(text, error) on the
+     * main thread; text is null when nothing was said or the request failed.
+     */
+    fun transcribe(ctx: Context, audio: File, done: (String?, String?) -> Unit) {
+        val key = Prefs.geminiKey(ctx)
+        val model = Prefs.geminiModel(ctx)
+        Net.pool.execute {
+            var text: String? = null
+            var error: String? = null
+            try {
+                val parts = JSONArray()
+                    .put(
+                        JSONObject().put(
+                            "text",
+                            "Write down exactly what is said in this recording, in the language that is spoken. " +
+                                "Reply with only those words. If nothing is said, reply with the single word NONE."
+                        )
+                    )
+                    .put(
+                        JSONObject().put(
+                            "inline_data",
+                            JSONObject().put("mime_type", "audio/aac")
+                                .put("data", Base64.encodeToString(audio.readBytes(), Base64.NO_WRAP))
+                        )
+                    )
+                val body = JSONObject().put("contents", JSONArray().put(JSONObject().put("role", "user").put("parts", parts)))
+                val heard = geminiPost(key, model, body)
+                if (heard != "NONE") text = heard
+            } catch (e: IOException) {
+                error = ctx.getString(R.string.err_net)
+            } catch (e: Exception) {
+                error = e.message ?: ctx.getString(R.string.err_net)
+            }
+            Net.main.post { done(text, error) }
+        }
+    }
+
+    /**
+     * Speaks text with Gemini's voice model, which covers Pashto and Dari.
+     * Calls done(wav) on the main thread with a WAV file's bytes, or null when it failed.
+     */
+    fun speech(ctx: Context, text: String, done: (ByteArray?) -> Unit) {
+        val key = Prefs.geminiKey(ctx)
+        val model = Prefs.ttsModel(ctx)
+        Net.pool.execute {
+            var wav: ByteArray? = null
+            try {
+                val content = JSONArray().put(JSONObject().put("type", "text").put("text", text.take(2000)))
+                val body = JSONObject()
+                    .put("model", model)
+                    .put("input", JSONArray().put(JSONObject().put("type", "user_input").put("content", content)))
+                    .put("response_format", JSONObject().put("type", "audio"))
+                    .put(
+                        "generation_config",
+                        JSONObject().put("speech_config", JSONArray().put(JSONObject().put("voice", "Kore")))
+                    )
+                val (code, reply) = Net.request(
+                    "POST", "https://generativelanguage.googleapis.com/v1beta/interactions",
+                    mapOf("x-goog-api-key" to key), body.toString()
+                )
+                if (code in 200..299) {
+                    val steps = parse(reply).optJSONArray("steps")
+                    if (steps != null) {
+                        for (i in 0 until steps.length()) {
+                            val step = steps.optJSONObject(i) ?: continue
+                            if (step.optString("type") != "model_output") continue
+                            val items = step.optJSONArray("content") ?: continue
+                            for (j in 0 until items.length()) {
+                                val item = items.optJSONObject(j) ?: continue
+                                if (item.optString("type") == "audio" && wav == null) {
+                                    wav = Base64.decode(item.optString("data"), Base64.DEFAULT)
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                wav = null // the caller falls back to the phone's own voice
+            }
+            Net.main.post { done(wav) }
+        }
+    }
+
     private fun gemini(key: String, model: String, system: String, turns: List<Turn>, image: Bitmap?): String {
         val contents = JSONArray()
         turns.forEachIndexed { i, t ->
@@ -284,6 +370,10 @@ object AI {
         val body = JSONObject()
             .put("system_instruction", JSONObject().put("parts", JSONArray().put(JSONObject().put("text", system))))
             .put("contents", contents)
+        return geminiPost(key, model, body)
+    }
+
+    private fun geminiPost(key: String, model: String, body: JSONObject): String {
         val (code, text) = Net.request(
             "POST", "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent",
             mapOf("x-goog-api-key" to key), body.toString()

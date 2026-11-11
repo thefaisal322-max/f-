@@ -11,8 +11,8 @@ android {
         applicationId = "com.fainet.faisalai"
         minSdk = 26
         targetSdk = 34
-        versionCode = 2
-        versionName = "2.0-F+"
+        versionCode = 3
+        versionName = "2.1-F+"
     }
     buildTypes {
         release {
@@ -43,4 +43,5 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.3.4")
     implementation("androidx.camera:camera-lifecycle:1.3.4")
     implementation("androidx.camera:camera-video:1.3.4")
+    implementation("androidx.camera:camera-view:1.3.4")
 }

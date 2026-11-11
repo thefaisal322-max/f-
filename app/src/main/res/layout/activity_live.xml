@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="?attr/colBg">
+    <include layout="@layout/bar" />
+    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <androidx.camera.view.PreviewView android:id="@+id/preview" android:layout_width="match_parent" android:layout_height="match_parent" />
+        <TextView android:id="@+id/code" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_gravity="top" android:layout_margin="12dp" android:padding="12dp"
+            android:background="@drawable/bg_bot" android:textColor="?attr/colFg" android:textSize="15sp"
+            android:maxLines="3" android:ellipsize="end" android:textDirection="ltr"
+            android:clickable="true" android:focusable="true" android:visibility="gone" />
+    </FrameLayout>
+    <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingStart="16dp" android:paddingEnd="16dp" android:paddingTop="8dp"
+        android:text="@string/live_hint" android:textColor="?attr/colMuted" android:textSize="13sp" />
+    <ScrollView android:layout_width="match_parent" android:layout_height="130dp">
+        <TextView android:id="@+id/out" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:padding="16dp" android:textColor="?attr/colFg" android:textSize="16sp" android:textIsSelectable="true" />
+    </ScrollView>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical" android:padding="12dp">
+        <Button android:id="@+id/btnAsk" style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/ask_what" />
+        <ImageButton android:id="@+id/mic" android:layout_width="60dp" android:layout_height="60dp" android:layout_marginStart="12dp"
+            android:background="@drawable/bg_user" android:src="@drawable/ic_mic" app:tint="?attr/colOnAccent"
+            android:contentDescription="@string/mic" />
+    </LinearLayout>
+</LinearLayout>

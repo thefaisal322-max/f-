@@ -135,4 +135,18 @@
     <string name="k_gemini" translatable="false">Gemini API key</string>
     <string name="k_gemini_model" translatable="false">Gemini model</string>
     <string name="k_tavily" translatable="false">Tavily API key</string>
+    <string name="t_live">Live</string>
+    <string name="mic">Speak</string>
+    <string name="listening">Listening… tap again to stop</string>
+    <string name="no_speech">Nothing was heard. Try again.</string>
+    <string name="no_voice">This phone has no voice for this language. Add a Gemini key in Settings for spoken answers.</string>
+    <string name="no_recognizer">Voice input needs a Gemini key in Settings, or Google speech services on this phone.</string>
+    <string name="live_hint">Point the camera at something, then tap the microphone and ask.</string>
+    <string name="ask_what">What is this?</string>
+    <string name="cam_wait">The camera is not ready yet.</string>
+    <string name="stop_bvr_first">Stop the BVR recording first.</string>
+    <string name="s_voice">Voice</string>
+    <string name="s_speak">Read answers aloud in AI Chat</string>
+    <string name="s_speak_sum">Live always speaks its answers.</string>
+    <string name="k_tts_model" translatable="false">Gemini voice model</string>
 </resources>

@@ -35,6 +35,7 @@ class MainActivity : BaseActivity() {
 
         tiles = listOf(
             Tile(R.string.t_chat, R.drawable.ic_chat, "main") { go(ChatActivity::class.java) },
+            Tile(R.string.t_live, R.drawable.ic_live, "main vision") { go(LiveActivity::class.java) },
             Tile(R.string.t_lens, R.drawable.ic_lens, "main vision") { go(VisionActivity::class.java) { putExtra("mode", "lens") } },
             Tile(R.string.t_ocr, R.drawable.ic_ocr, "main vision") { go(VisionActivity::class.java) { putExtra("mode", "ocr") } },
             Tile(R.string.t_bvr, R.drawable.ic_bvr, "main vision") { go(BvrActivity::class.java) },
