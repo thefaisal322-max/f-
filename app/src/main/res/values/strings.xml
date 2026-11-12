@@ -289,4 +289,11 @@ Share Files sends files directly between phones on the same Wi‑Fi. The transfe
     <string name="map_found_link">Location from the link</string>
     <string name="map_hint2">Search a place or paste a location link</string>
     <string name="web_tab_hint">Search the web with F+</string>
+    <string name="search">Search</string>
+    <string name="a_copy">Copy</string>
+    <string name="a_share">Share</string>
+    <string name="a_like">Like</string>
+    <string name="a_dislike">Dislike</string>
+    <string name="a_replay">Try again</string>
+    <string name="a_edit">Edit</string>
 </resources>

@@ -167,7 +167,7 @@ class ChatActivity : BaseActivity() {
         } catch (e: Exception) {
             turns.clear() // the chat was deleted or is unreadable; start empty
         }
-        turns.forEach { bubble(it.role, it.show) }
+        turns.forEachIndexed { i, t -> bubble(t.role, t.show, i) }
         Prefs.sp(this).edit().putString("chat_current", id).apply()
         refreshSide()
         updateWelcome()
@@ -254,7 +254,10 @@ class ChatActivity : BaseActivity() {
 
     // ---------- messages ----------
 
-    private fun bubble(role: String, text: String): TextView {
+    private val rating = HashMap<Int, Int>() // turn index -> 1 liked, -1 disliked
+
+    /** A message: the bubble and, under it, small action buttons. [index] is its place in [turns]. */
+    private fun bubble(role: String, text: String, index: Int = turns.size): TextView {
         val user = role == "user"
         val tv = TextView(this)
         tv.text = text
@@ -264,12 +267,93 @@ class ChatActivity : BaseActivity() {
         tv.setBackgroundResource(if (user) R.drawable.bg_user else R.drawable.bg_bot)
         tv.setTextColor(attrColor(if (user) R.attr.colOnAccent else R.attr.colFg))
         tv.maxWidth = (resources.displayMetrics.widthPixels * 0.85f).toInt()
-        val lp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        lp.gravity = if (user) Gravity.END else Gravity.START
+
+        val box = LinearLayout(this)
+        box.orientation = LinearLayout.VERTICAL
+        box.tag = index
+        box.addView(tv, LinearLayout.LayoutParams(-2, -2).apply { gravity = if (user) Gravity.END else Gravity.START })
+        val actions = LinearLayout(this)
+        actions.orientation = LinearLayout.HORIZONTAL
+        actions.tag = "actions"
+        actions.visibility = if (text == getString(R.string.thinking)) View.GONE else View.VISIBLE
+        fun action(icon: Int, label: Int, tint: Boolean = false, run: (ImageButton) -> Unit): ImageButton {
+            val b = ImageButton(this)
+            b.setImageResource(icon)
+            b.setBackgroundResource(android.R.color.transparent)
+            b.contentDescription = getString(label)
+            b.setColorFilter(attrColor(if (tint) R.attr.colAccent else R.attr.colMuted))
+            b.setPadding(dp(8), dp(6), dp(8), dp(6))
+            b.setOnClickListener { run(b) }
+            actions.addView(b, LinearLayout.LayoutParams(dp(38), dp(34)))
+            return b
+        }
+        if (user) {
+            action(R.drawable.ic_a_edit, R.string.a_edit) { edit(box.tag as Int) }
+            action(R.drawable.ic_a_copy, R.string.a_copy) { copy(tv.text.toString()) }
+        } else {
+            action(R.drawable.ic_a_copy, R.string.a_copy) { copy(tv.text.toString()) }
+            action(R.drawable.ic_a_share, R.string.a_share) {
+                startActivity(android.content.Intent.createChooser(
+                    android.content.Intent(android.content.Intent.ACTION_SEND).setType("text/plain").putExtra(android.content.Intent.EXTRA_TEXT, tv.text.toString()),
+                    getString(R.string.share)))
+            }
+            lateinit var like: ImageButton
+            lateinit var dislike: ImageButton
+            fun paint() {
+                val r = rating[box.tag as Int] ?: 0
+                like.setColorFilter(attrColor(if (r == 1) R.attr.colAccent else R.attr.colMuted))
+                dislike.setColorFilter(attrColor(if (r == -1) R.attr.colAccent else R.attr.colMuted))
+            }
+            like = action(R.drawable.ic_a_like, R.string.a_like) {
+                val k = box.tag as Int
+                rating[k] = if (rating[k] == 1) 0 else 1
+                paint()
+            }
+            dislike = action(R.drawable.ic_a_dislike, R.string.a_dislike) {
+                val k = box.tag as Int
+                rating[k] = if (rating[k] == -1) 0 else -1
+                paint()
+            }
+            action(R.drawable.ic_a_replay, R.string.a_replay) { replay(box.tag as Int) }
+            paint()
+        }
+        box.addView(actions, LinearLayout.LayoutParams(-2, -2).apply { gravity = if (user) Gravity.END else Gravity.START })
+
+        val lp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         lp.topMargin = dp(8)
-        log.addView(tv, lp)
+        log.addView(box, lp)
         scrollDown()
         return tv
+    }
+
+    /** Removes the turns from [index] on, and their messages and photos on screen. */
+    private fun cut(index: Int) {
+        while (turns.size > index) turns.removeAt(turns.lastIndex)
+        for (i in log.childCount - 1 downTo 0) {
+            val t = log.getChildAt(i).tag
+            if (t is Int && t >= index) log.removeViewAt(i)
+        }
+        rating.keys.removeAll { it >= index }
+        updateWelcome()
+    }
+
+    /** Edit a question: it goes back into the text box and the chat continues from there. */
+    private fun edit(index: Int) {
+        if (busy || index >= turns.size) return
+        val t = turns[index]
+        val plain = if (t.text.contains("\n\n[File:")) t.text.substringBefore("\n\n[File:") else t.show
+        cut(index)
+        save()
+        input.setText(plain)
+        input.setSelection(input.text.length)
+        input.requestFocus()
+    }
+
+    /** Ask the question again and get a new answer. */
+    private fun replay(index: Int) {
+        if (busy || index < 1 || index >= turns.size) return
+        cut(index)
+        respond(null)
     }
 
     private fun photoBubble(bmp: Bitmap) {
@@ -281,6 +365,7 @@ class ChatActivity : BaseActivity() {
         val lp = LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         lp.gravity = Gravity.END
         lp.topMargin = dp(8)
+        iv.tag = turns.size
         log.addView(iv, lp)
     }
 
@@ -303,21 +388,28 @@ class ChatActivity : BaseActivity() {
         if (image != null) photoBubble(image)
         turns.add(AI.Turn("user", sent, shown))
         updateWelcome()
-        bubble("user", shown)
+        bubble("user", shown, turns.size - 1)
         clearAttachment()
+        respond(image)
+    }
+
+    /** Gets the AI's answer to the chat so far and shows it. */
+    private fun respond(image: Bitmap?) {
         val reply = bubble("model", getString(R.string.thinking))
+        val actions = (reply.parent as View).findViewWithTag<View>("actions")
         busy = true
         send.isEnabled = false
 
         // Send the recent turns only, and make sure they start with a user turn.
         var context: List<AI.Turn> = turns.takeLast(20)
         if (context.first().role != "user") context = context.drop(1)
-        val system = "You are Faisal, the assistant inside the Faisal AI Assistance app. " +
+        val system = AI.IDENTITY + "You are the assistant inside the Faisal AI Assistance app. " +
             "Be helpful, accurate and friendly. " + Prefs.style(this)
 
         AI.ask(this, system, context, image) { answer, error ->
             busy = false
             send.isEnabled = true
+            actions?.visibility = View.VISIBLE
             if (answer != null) {
                 turns.add(AI.Turn("model", answer))
                 reply.text = answer

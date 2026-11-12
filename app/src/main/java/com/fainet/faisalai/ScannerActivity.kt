@@ -202,7 +202,7 @@ class ScannerActivity : BaseActivity() {
             }
             Net.main.post {
                 busy = false
-                status.text = if (ok) getString(R.string.saved_as, "Download/Faisal/Scans/$saved") else getString(R.string.save_failed)
+                status.text = if (ok) getString(R.string.saved_as, "Download/${Public.ROOT}/Scans/$saved") else getString(R.string.save_failed)
             }
         }
     }

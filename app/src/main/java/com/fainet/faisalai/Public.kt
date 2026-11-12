@@ -13,11 +13,11 @@ import java.io.File
 
 /**
  * Files the app makes are kept in the phone's own Download folder, in a folder per feature:
- * Download/Faisal/BVR, Download/Faisal/Share, Download/Faisal/Scans, Download/Faisal/Codes, Download/Faisal/Notes.
+ * Download/Faisal/F+/BVR, .../Share, .../Scans, .../Codes, .../Notes.
  * They stay on the phone when the app is removed and show up in any file manager.
  */
 object Public {
-    const val ROOT = "Faisal"
+    const val ROOT = "Faisal/F+"
 
     class Entry(val name: String, val uri: Uri, val size: Long, val folder: String) {
         val path: String get() = "Download/$ROOT/$folder/$name"

@@ -74,7 +74,7 @@ class MakerActivity : BaseActivity() {
         }
         findViewById<Button>(R.id.btnSave).setOnClickListener {
             val f = save()
-            if (f != null) toast(getString(R.string.saved_as, "Download/Faisal/Codes/" + f.name))
+            if (f != null) toast(getString(R.string.saved_as, "Download/${Public.ROOT}/Codes/" + f.name))
         }
         findViewById<Button>(R.id.btnShare).setOnClickListener {
             val f = save() ?: return@setOnClickListener

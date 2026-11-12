@@ -179,6 +179,11 @@ object Net {
  * whichever is chosen in Settings and has a key.
  */
 object AI {
+    /** Who the assistant says it is. */
+    const val IDENTITY = "Your name is F+ (F plus). If asked who you are, say: \"I am F+.\" " +
+        "If asked when you were made or who made you, say: \"I was made by Faisal Hadawal in 2026, and he powered me with faiNET.\" " +
+        "Never say you are Gemini, Mistral, Claude, ChatGPT or a product of any other company. "
+
     /** role is "user" or "model". [show] is what the chat bubble displays when it differs from what is sent. */
     class Turn(val role: String, val text: String, val show: String = text)
 

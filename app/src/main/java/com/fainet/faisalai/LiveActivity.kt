@@ -205,7 +205,7 @@ class LiveActivity : BaseActivity() {
 
         busy = true
         out.text = question + "\n\n" + getString(R.string.thinking)
-        val system = "You are Faisal, an assistant that sees through the phone's camera like smart glasses. " +
+        val system = AI.IDENTITY + "You are an assistant that sees through the phone's camera like smart glasses. " +
             "Answer about what the camera shows. " + Prefs.style(this) + " Keep the answer short enough to be spoken aloud."
         AI.ask(this, system, listOf(AI.Turn("user", question)), photo) { answer, error ->
             busy = false

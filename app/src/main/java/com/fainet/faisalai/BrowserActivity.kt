@@ -75,15 +75,11 @@ class BrowserActivity : BaseActivity() {
 
         findViewById<ImageButton>(R.id.navBack).setOnClickListener { back() }
         input.setOnEditorActionListener { _, id, _ ->
-            if (id != EditorInfo.IME_ACTION_SEARCH) return@setOnEditorActionListener false
-            val q = input.text.toString().trim()
-            if (q.isNotEmpty()) {
-                query = q
-                (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(input.windowToken, 0)
-                run()
-            }
+            if (id != EditorInfo.IME_ACTION_SEARCH && id != EditorInfo.IME_ACTION_GO && id != EditorInfo.IME_ACTION_DONE) return@setOnEditorActionListener false
+            submit()
             true
         }
+        findViewById<ImageButton>(R.id.btnGo).setOnClickListener { submit() }
         listOf(R.string.ai_says, R.string.tab_all, R.string.tab_images, R.string.tab_videos)
             .forEach { tabs.addTab(tabs.newTab().setText(it), false) }
         tabs.getTabAt(mode)?.select()
@@ -99,6 +95,15 @@ class BrowserActivity : BaseActivity() {
         status.setText(R.string.search_first)
         intent.getStringExtra("query")?.let { input.setText(it); query = it; run() }
         intent.getStringExtra("url")?.let { web.visibility = View.VISIBLE; web.loadUrl(it) }
+    }
+
+    /** Searches for what is typed in the box. */
+    private fun submit() {
+        val q = input.text.toString().trim()
+        if (q.isEmpty()) return
+        query = q
+        (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(input.windowToken, 0)
+        run()
     }
 
     private fun back() {
@@ -122,7 +127,10 @@ class BrowserActivity : BaseActivity() {
     }
 
     private fun run() {
-        val q = query ?: run { toast(getString(R.string.search_first)); return }
+        // Whatever is typed in the box is searched, even if search was not pressed yet.
+        val typed = input.text.toString().trim()
+        if (typed.isNotEmpty()) query = typed
+        val q = query ?: return
         val my = ++request
         closePage()
         show(emptyList(), getString(R.string.thinking))

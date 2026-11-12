@@ -272,4 +272,11 @@ Share Files فایل‌ها را مستقیم بین گوشی‌های یک Wi�
     <string name="map_found_link">موقعیت از پیوند</string>
     <string name="map_hint2">مکان را جستجو کنید یا پیوند موقعیت بچسبانید</string>
     <string name="web_tab_hint">با F+ در وب جستجو کنید</string>
+    <string name="search">جستجو</string>
+    <string name="a_copy">کپی</string>
+    <string name="a_share">اشتراک</string>
+    <string name="a_like">پسندیدن</string>
+    <string name="a_dislike">نپسندیدن</string>
+    <string name="a_replay">تلاش دوباره</string>
+    <string name="a_edit">ویرایش</string>
 </resources>

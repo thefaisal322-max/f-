@@ -272,4 +272,11 @@ Share Files فایلونه په یوه Wi‑Fi کې د تلیفونونو تر �
     <string name="map_found_link">د لینک موقعیت</string>
     <string name="map_hint2">ځای ولټوئ یا د موقعیت لینک پیسټ کړئ</string>
     <string name="web_tab_hint">په F+ سره په ویب کې ولټوئ</string>
+    <string name="search">لټون</string>
+    <string name="a_copy">کاپي</string>
+    <string name="a_share">شریکول</string>
+    <string name="a_like">خوښ</string>
+    <string name="a_dislike">نا خوښ</string>
+    <string name="a_replay">بیا هڅه</string>
+    <string name="a_edit">سمول</string>
 </resources>

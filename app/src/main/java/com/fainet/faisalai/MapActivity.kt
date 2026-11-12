@@ -41,6 +41,9 @@ class MapActivity : BaseActivity() {
     private var me: MyLocationNewOverlay? = null
     private var pin: Marker? = null
     private var pinName = ""
+    private var infoBase = ""
+    private var weatherText = ""
+    private var weatherFor = ""
     private var routeLine: Polyline? = null
     private lateinit var results: ListView
     private lateinit var info: TextView
@@ -55,6 +58,16 @@ class MapActivity : BaseActivity() {
         // The map server requires every app to identify itself.
         Configuration.getInstance().load(applicationContext, Prefs.sp(this))
         Configuration.getInstance().userAgentValue = packageName
+        // Keep the map light: few downloads at once, a bigger on-phone tile cache, tiles remembered for a week.
+        Configuration.getInstance().apply {
+            tileDownloadThreads = 2
+            tileFileSystemThreads = 2
+            tileDownloadMaxQueueSize = 24
+            cacheMapTileCount = 12
+            expirationOverrideDuration = 7L * 24 * 3600 * 1000
+            tileFileSystemCacheMaxBytes = 120L * 1024 * 1024
+            tileFileSystemCacheTrimBytes = 90L * 1024 * 1024
+        }
 
         setContentView(R.layout.activity_map)
         bar(R.string.t_nav)
@@ -62,6 +75,7 @@ class MapActivity : BaseActivity() {
         map.setTileSource(TileSourceFactory.MAPNIK)
         map.setMultiTouchControls(true)
         map.minZoomLevel = 3.0
+        map.maxZoomLevel = 18.0
         map.controller.setZoom(3.5)
         map.controller.setCenter(GeoPoint(30.0, 60.0))
         map.overlays.add(CopyrightOverlay(this))
@@ -165,9 +179,56 @@ class MapActivity : BaseActivity() {
         map.overlays.add(marker)
         pin = marker
         pinName = name
-        info.text = name
-        info.visibility = if (name.isEmpty()) View.GONE else View.VISIBLE
+        infoBase = name
+        renderInfo()
+        weather(p)
         map.invalidate()
+    }
+
+    private fun renderInfo() {
+        val text = listOf(infoBase, weatherText).filter { it.isNotEmpty() }.joinToString("\n")
+        info.text = text
+        info.visibility = if (text.isEmpty()) View.GONE else View.VISIBLE
+    }
+
+    /** The current weather at a point, from Open-Meteo, shown under the place name. */
+    private fun weather(p: GeoPoint) {
+        val key = "%.2f,%.2f".format(java.util.Locale.US, p.latitude, p.longitude)
+        weatherFor = key
+        weatherText = ""
+        Net.pool.execute {
+            var text = ""
+            try {
+                val (code, body) = Net.request(
+                    "GET", "https://api.open-meteo.com/v1/forecast?latitude=${p.latitude}&longitude=${p.longitude}" +
+                        "&current=temperature_2m,weather_code,wind_speed_10m&timezone=auto", emptyMap(), null
+                )
+                if (code in 200..299) {
+                    val cur = JSONObject(body).getJSONObject("current")
+                    val label = getString(
+                        when (cur.getInt("weather_code")) {
+                            0, 1 -> R.string.w_clear
+                            2 -> R.string.w_partly
+                            3 -> R.string.w_cloudy
+                            45, 48 -> R.string.w_fog
+                            in 51..57 -> R.string.w_drizzle
+                            in 61..67 -> R.string.w_rain
+                            in 71..77, 85, 86 -> R.string.w_snow
+                            in 80..82 -> R.string.w_showers
+                            in 95..99 -> R.string.w_thunder
+                            else -> R.string.w_cloudy
+                        }
+                    )
+                    text = "%.0f°C · %s · %.0f km/h".format(cur.getDouble("temperature_2m"), label, cur.getDouble("wind_speed_10m"))
+                }
+            } catch (e: Exception) { }
+            Net.main.post {
+                if (!isDestroyed && weatherFor == key && text.isNotEmpty()) {
+                    weatherText = text
+                    renderInfo()
+                }
+            }
+        }
     }
 
     private fun reverse(p: GeoPoint) {
@@ -185,8 +246,8 @@ class MapActivity : BaseActivity() {
                 if (!isDestroyed && name.isNotEmpty() && cur != null && cur.latitude == p.latitude && cur.longitude == p.longitude) {
                     pinName = name
                     pin?.title = name
-                    info.text = name
-                    info.visibility = View.VISIBLE
+                    infoBase = name
+                    renderInfo()
                 }
             }
         }
@@ -270,8 +331,8 @@ class MapActivity : BaseActivity() {
                 pl.outlinePaint.strokeWidth = 14f
                 map.overlays.add(pl)
                 routeLine = pl
-                info.text = summary + (if (pinName.isNotEmpty()) "\n$pinName" else "")
-                info.visibility = View.VISIBLE
+                infoBase = summary + (if (pinName.isNotEmpty()) "\n$pinName" else "")
+                renderInfo()
                 map.zoomToBoundingBox(org.osmdroid.util.BoundingBox.fromGeoPoints(pts).increaseByScale(1.3f), true)
                 map.invalidate()
             }
@@ -282,6 +343,26 @@ class MapActivity : BaseActivity() {
         ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
+    /** Where I am: the place name and the weather here. */
+    private fun hereInfo(p: GeoPoint) {
+        infoBase = getString(R.string.my_location)
+        renderInfo()
+        weather(p)
+        val language = resources.configuration.locales[0].language
+        Net.pool.execute {
+            val city = try {
+                val (code, body) = Net.request(
+                    "GET", "https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&lat=${p.latitude}&lon=${p.longitude}",
+                    mapOf("User-Agent" to "FaisalAI/3.0 ($packageName)", "Accept-Language" to language), null
+                )
+                if (code in 200..299) JSONObject(body).optString("display_name") else ""
+            } catch (e: Exception) { "" }
+            Net.main.post {
+                if (!isDestroyed && city.isNotEmpty()) { infoBase = getString(R.string.my_location) + ": " + city; renderInfo() }
+            }
+        }
+    }
+
     private fun showMe() {
         val overlay = me ?: MyLocationNewOverlay(GpsMyLocationProvider(this), map).also {
             me = it
@@ -290,14 +371,16 @@ class MapActivity : BaseActivity() {
         overlay.enableMyLocation()
         val known = overlay.myLocation
         if (known != null) {
-            map.controller.setZoom(17.0)
+            map.controller.setZoom(16.0)
             map.controller.animateTo(known)
+            hereInfo(known)
         } else {
             overlay.runOnFirstFix {
                 runOnUiThread {
                     val fix = overlay.myLocation ?: return@runOnUiThread
-                    map.controller.setZoom(17.0)
+                    map.controller.setZoom(16.0)
                     map.controller.animateTo(fix)
+                    hereInfo(fix)
                 }
             }
         }

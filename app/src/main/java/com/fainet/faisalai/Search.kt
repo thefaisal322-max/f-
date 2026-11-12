@@ -33,7 +33,7 @@ object Search {
             try {
                 val body = JSONObject()
                     .put("system_instruction", JSONObject().put("parts", org.json.JSONArray().put(JSONObject().put("text",
-                        "Search the web and answer the question with up-to-date, factual information. " + Prefs.style(ctx)))))
+                        AI.IDENTITY + "Search the web and answer the question with up-to-date, factual information. " + Prefs.style(ctx)))))
                     .put("contents", org.json.JSONArray().put(JSONObject().put("role", "user")
                         .put("parts", org.json.JSONArray().put(JSONObject().put("text", q)))))
                     .put("tools", org.json.JSONArray().put(JSONObject().put("google_search", JSONObject())))
